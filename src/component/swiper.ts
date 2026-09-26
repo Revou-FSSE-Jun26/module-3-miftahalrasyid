@@ -141,6 +141,71 @@ export function initSwiperComponent() {
     console.error("Elemen #mySwiper tidak ditemukan di DOM!");
     return;
   }
+
+  interface Product {
+    id: number,
+    name: string,
+    price: number,
+    category: string,
+    inStock: boolean
+  }
+  interface CartItem extends Product {
+    quantity: number; // Properti tambahan khusus untuk keranjang belanja
+  }
+
+  // --- 1) DATA LAYER: at least 6 products (Product[]) ---
+  const products: Product[] = [
+    { id: 1, name: "Wireless Mouse", price: 250000, category: "Accessories", inStock: true },
+    { id: 2, name: "Mechanical Keyboard", price: 500000, category: "Accessories", inStock: false },
+    { id: 3, name: "Laptop Pro 14", price: 15000000, category: "Computers", inStock: true },
+    { id: 4, name: "USB-C Hub", price: 150000, category: "Accessories", inStock: true },
+    { id: 5, name: "Monitor", price: 2500000, category: "Accessories", inStock: true },
+    { id: 6, name: "Webcam", price: 200000, category: "Accessories", inStock: true },
+    // TODO: add 3+ more products (USB-C Hub, Monitor, Webcam, ...)
+  ];
+  let cartItems: CartItem[] = [];  // CartItem[]
+  type BadgeVariant = "success" | "warning" | "error";
+  function getBadgeClasses(variant: BadgeVariant) {
+    const base = "text-xs font-semibold px-2 py-1 rounded-full";
+    const variants: Record<BadgeVariant, string> = {
+      // TODO: success -> green, warning -> yellow, error -> red
+      success: "bg-green-100 text-green-500",
+      warning: "bg-yellow-100 text-yellow-500",
+      error: "bg-red-100 text-red-500",
+    };
+    console.log(base + " " + variants[variant])
+    return base + " " + variants[variant];
+  }
+
+  function getCardClasses(inStock: Boolean) {
+    const base = "bg-white rounded-xl shadow-md p-4 transition";
+    // TODO: return base + " hover:shadow-xl" when inStock,
+    //       otherwise base + " opacity-60 grayscale"
+    console.log("base", base)
+    return inStock ? base + " hover:shadow-xl" : base + " opacity-60 grayscale";
+  }
+
+  function formatRupiah(n: number) {
+    return "Rp " + n.toLocaleString("id-ID");
+  }
+  function renderProducts(list: Product[]) {
+    return list.map((p) => `
+      <div class="swiper-slide">
+        <article id="card-instock"  class="bg-gray-100 shadow-lg border border-gray-400 flex flex-col content-center items-center w-full max-w-[280px] md:w-[300px] h-fit m-auto rounded-xl ${getCardClasses(p.inStock)}">
+          <img class="w-full h-44 object-none rounded-t-xl" src="https://cdn-icons-png.flaticon.com/512/3792/3792702.png"
+                        alt="Laptop" />
+          <span id="card-instock-badge" class="${getBadgeClasses(p.inStock ? "success" : "error")}">${p.inStock ? "In Stock" : "Sold Out"}</span>
+          <h2 class="text-lg font-bold text-gray-900 mt-2 truncate">${p.name}</h2>
+          <p class="text-xl font-bold text-blue-600 mt-1">${formatRupiah(p.price)}</p>
+          <span class="text-xs"></span>
+          <button data-id="${p.id}" class="add-btn bg-indigo-500 rounded-md text-white p-4 py-2 w-full mt-3">Add to cart</button>
+        </article>
+      </div>
+    `).join("")
+    // Each card: status badge (getBadgeClasses), truncated name, formatRupiah(price),
+    // category, and a button with class "add-btn" and data-id="${p.id}".
+  }
+
   let slides: Feature[] = [{
     name: "Feature 1",
     description: "feature 1 description"
@@ -191,12 +256,12 @@ export function initSwiperComponent() {
             <button class="p-2 invisible  rounded-lg bg-gray-300 text-md text-black mt-3"> Learn More</button>
           </div>
         </div>-->
-        ${slidesHTML.join("")}
+        ${renderProducts(products)}
         
       </div>
       
       <!-- Optional layout pieces (arrows and dots) -->
-      <div class="swiper-pagination !top-80"></div>
+      <div class="swiper-pagination !top-96"></div>
       <button class="custom-prev absolute left-2 top-[55%] -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md hover:bg-slate-50 disabled:opacity-30 z-10">
         <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -215,11 +280,13 @@ export function initSwiperComponent() {
 
 
   const sliderElement = appDiv.querySelector<HTMLDivElement>('.my-slider');
+  const searchInput = document.querySelector<HTMLInputElement>("#search")
 
   if (!sliderElement) {
     console.error("Elemen .my-slider gagal di-inject ke dalam DOM!");
     return;
   }
+
   const swiper = new Swiper(sliderElement, {
     modules: [Navigation, Pagination],
     direction: 'horizontal',
@@ -253,6 +320,84 @@ export function initSwiperComponent() {
       // prevEl: '.swiper-button-prev',
     },
   });
+  function renderCart() {
+    // TODO: derive totalItems and totalPrice from cartItems with reduce,
+    //       then update #cart-count and #cart-total textContent.
+    let cartCount = document.querySelector<HTMLElement>("#cart-count");
+    let cartTotal = document.querySelector<HTMLElement>("#cart-total");
+    if (cartCount) {
+      cartCount.textContent = cartItems.reduce((count, cartItem) => count + cartItem.quantity, 0).toString()
+    }
+    if (cartTotal) {
+      cartTotal.textContent = formatRupiah(cartItems.reduce((sum, cartItem) => sum + cartItem.price * cartItem.quantity, 0))
+    }
+  }
+
+  // --- 5) ADD TO CART ---
+  function addToCart(id: number) {
+    // TODO: find product by id; ignore if missing or !inStock.
+    //       if already in cartItems, quantity += 1; else push { product, quantity: 1 }.
+    //       then renderCart().
+    // const cart: Product[]
+    const selectedProduct = products.find(a => a.id === id);
+    if (!selectedProduct || !selectedProduct.inStock) return;
+    if (selectedProduct) {
+      let selectedProductExist = cartItems.find(a => a.id === id)
+      if (selectedProductExist) {
+        selectedProductExist.quantity++
+      }
+      else {
+        cartItems.push({
+          ...selectedProduct,
+          quantity: 1
+        });
+      }
+      console.log("cartitems", cartItems)
+    }
+    renderCart()
+  }
+  appDiv.addEventListener("click", (event) => {
+    const target = event.target;
+    if (target instanceof Element) {
+      const buttonElm = target.closest('.add-btn') as HTMLButtonElement | null;
+      if (buttonElm && buttonElm.dataset.id) {
+
+        // 4. Jalankan fungsi addToCart dengan mengonversi ID string menjadi Number
+        addToCart(Number(buttonElm.dataset.id));
+
+        // Opsional: Log untuk memastikan tombol yang diklik sudah benar
+        console.log("Berhasil menambahkan produk dengan ID:", buttonElm.dataset.id);
+      }
+
+    }
+  })
+  function updateSwiperData(newProducts: Product[]) {
+    // 1. Targetkan HANYA elemen pembungkus slide di dalam slider Anda
+    const wrapper = document.querySelector<HTMLDivElement>('.my-slider .swiper-wrapper');
+
+    if (!wrapper || !swiper) {
+      console.error("Swiper belum diinisialisasi atau .swiper-wrapper tidak ditemukan!");
+      return;
+    }
+
+    // 2. Ganti isinya saja menggunakan fungsi renderProducts bawaan Anda
+    wrapper.innerHTML = renderProducts(newProducts);
+
+    // 3. Panggil fungsi update bawaan Swiper JS
+    // Ini akan menghitung ulang jumlah slide baru tanpa merusak tombol panah custom Anda
+    swiper.update();
+  }
+
+  if (searchInput)
+    searchInput.addEventListener("input", (event) => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement) {
+        console.log(target.value)
+        updateSwiperData(products.filter(p => p.name.toLowerCase().includes(target.value.toLowerCase())))
+        // renderProducts(products.filter(p => p.name.toLowerCase().includes(target.value.toLowerCase())));
+      }
+    })
+
   return swiper
 }
 
