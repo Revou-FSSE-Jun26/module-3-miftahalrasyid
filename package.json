@@ -1,0 +1,26 @@
+{
+  "name": "checkpoint1",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "script.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "node node_modules/typescript/lib/tsc.js && vite build"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^5.4.21"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "apexcharts": "^7.6.0",
+    "swiper": "^14.2.0"
+  }
+}
