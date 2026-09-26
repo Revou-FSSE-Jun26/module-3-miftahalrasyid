@@ -301,7 +301,8 @@ http://localhost:5173
 
 ## 📁 Struktur Folder Utama
 ```text
-── dist
+── LICENSE
+├── dist
 │   ├── assets
 │   │   ├── index-CGsulywL.css
 │   │   └── index-Dezi127P.js
@@ -312,7 +313,13 @@ http://localhost:5173
 ├── readme.md
 ├── src
 │   ├── app.ts
+│   ├── component
+│   │   ├── contactform.ts
+│   │   └── swiper.ts
 │   └── utils.ts
+├── static
+│   ├── image.png
+│   └── web illustration.png
 ├── styles.css
 ├── tsconfig.json
 ├── tsconfig.node.json
@@ -320,5 +327,5 @@ http://localhost:5173
 ├── vite.config.d.ts.map
 ├── vite.config.js
 ├── vite.config.js.map
-└── vite.config.ts    
+└── vite.config.ts
 ```
