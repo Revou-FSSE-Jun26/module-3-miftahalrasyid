@@ -231,7 +231,7 @@ export function initSwiperComponent() {
   let slidesHTML = slides.map(item => {
     return `
       <div class="swiper-slide">
-      <div class="bg-gray-100 shadow-lg border border-gray-400 flex flex-col content-center items-center w-full max-w-[280px] md:w-[300px] h-[300px] m-auto rounded-xl">
+      <div class="bg-gray-100 shadow-lg border border-gray-400 flex flex-col content-center items-center w-full max-w-70 md:w-75 h-75 m-auto rounded-xl">
             <img class="w-full h-44 object-none rounded-t-xl" src="https://cdn-icons-png.flaticon.com/512/3792/3792702.png"
                         alt="Laptop" />
             <p class="text-md font-bold text-black mt-1"> ${item.name}</p>
