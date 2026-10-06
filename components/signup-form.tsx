@@ -1,13 +1,20 @@
 'use client'
 
-import { signup, initialState } from '@/app/actions/auth'
+import { signup } from '@/app/actions/auth.actions'
 import { Box, TextField, Typography, CircularProgress, Button, Paper, FormControlLabel, Checkbox, Link, FormHelperText } from '@mui/material'
 import { useActionState, ReactNode, useState } from 'react'
 import SendEmail from '@/components/send-email'
+import { FormState } from '@/app/schemas/auth.schemas'
 
 interface SignupFormProps {
     children?: ReactNode;
 }
+
+export const initialState: FormState = {
+    success: false,
+    message: "",
+    errors: {},
+};
 
 export default function SignupForm({ children }: SignupFormProps) {
     const [state, action, pending] = useActionState(signup, initialState)

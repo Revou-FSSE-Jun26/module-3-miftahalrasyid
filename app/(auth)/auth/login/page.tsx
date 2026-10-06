@@ -7,11 +7,14 @@ export const metadata = {
 };
 
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: PageProps) {
+    const resolvedParams = await searchParams;
+    const redirectTo = resolvedParams.next || "/"; // Fallback to main dashboard
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
-                <LoginForm>
+                <LoginForm redirectTo={redirectTo}>
                     <div className='pb-6'>
                         <Heading />
                         <SubHeading />
@@ -20,6 +23,10 @@ export default function LoginPage() {
             </div>
         </div>
     );
+}
+
+interface PageProps {
+    searchParams: Promise<{ next?: string }>;
 }
 
 const Heading = (): JSX.Element => (

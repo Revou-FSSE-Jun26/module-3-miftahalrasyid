@@ -1,16 +1,33 @@
 'use client'
 
-import { login, loginInitialState } from '@/app/actions/auth'
+import { login } from '@/app/actions/auth.actions'
+import { LoginFormState } from '@/app/schemas/auth.schemas';
 import { Box, TextField, Typography, CircularProgress, Button, Paper } from '@mui/material'
-import { useActionState, ReactNode } from 'react'
+import { useRouter } from 'next/navigation';
+import { useActionState, ReactNode, useEffect } from 'react'
 
 interface LoginFormProps {
     children?: ReactNode;
+    redirectTo: string
 }
 
-export default function LoginForm({ children }: LoginFormProps) {
-    const [state, action, pending] = useActionState(login, loginInitialState)
+export const loginInitialState: LoginFormState = {
+    success: false,
+    message: "",
+    errors: {},
+};
 
+export default function LoginForm({ redirectTo, children }: LoginFormProps) {
+    const loginWithRedirect = login.bind(null, redirectTo);
+    const [state, action, pending] = useActionState(loginWithRedirect, loginInitialState)
+
+    const router = useRouter();
+    useEffect(() => {
+        if (state.success) {
+            router.push(redirectTo);
+            router.refresh();
+        }
+    }, [state.success, redirectTo, router]);
     // Reusable style untuk textfield tinggi 40px (sama dengan signup-form)
     const textFieldStyle = {
         '& .MuiOutlinedInput-root': {

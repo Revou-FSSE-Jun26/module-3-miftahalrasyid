@@ -1,14 +1,14 @@
-import Image from "next/image";
-import {ProductGrid} from "@/components/ProductGrid"
+"use server"
+import { ProductGrid } from "@/components/ProductGrid"
 
 
 
 
-export default function Home() {
+export default async function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="p-8">
-        <ProductGrid/>
+        <h1 className="text-2xl text-gray-800">Home</h1>
       </main>
     </div>
   );
