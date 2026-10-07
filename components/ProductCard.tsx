@@ -1,10 +1,10 @@
 "use client"
 import { SellerProduct } from '@/app/actions/catalog.actions';
-import { Chip } from '@mui/material';
+import { formatRupiah, formatTitle } from '@/utils/format';
 
 export function ProductCard({ product }: ProductCardProps) {
     const inStock = product.stock > 0;
-    const title = product.title || product.name || "Product";
+    const title = formatTitle(product.title || product.name);
     const brand = product.brand || "";
     const imageUrl = product.images?.[0];
     const detailUrl = `/products/${product.id}`;
@@ -86,8 +86,4 @@ export function ProductCard({ product }: ProductCardProps) {
 
 export interface ProductCardProps {
     product: SellerProduct;
-}
-
-function formatRupiah(amount: number) {
-    return `Rp ${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }

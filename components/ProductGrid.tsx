@@ -1,5 +1,6 @@
 import { SellerProduct } from "@/app/actions/catalog.actions";
 import { ProductCard } from "@/components/ProductCard"
+import { formatRupiah, formatTitle } from "@/utils/format"
 
 interface ProductGridProps {
     catalogues: SellerProduct[]
@@ -36,7 +37,7 @@ export function ProductGrid({ catalogues }: ProductGridProps) {
                                     <div className="md:w-1/2 aspect-[4/3]">
                                         <img
                                             src={product.images?.[0] || ""}
-                                            alt={product.title || product.name || "Product"}
+                                            alt={formatTitle(product.title || product.name)}
                                             className="w-full h-full object-cover"
                                         />
                                     </div>
@@ -45,7 +46,7 @@ export function ProductGrid({ catalogues }: ProductGridProps) {
                                             Featured
                                         </div>
                                         <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                                            {product.title || product.name}
+                                            {formatTitle(product.title || product.name)}
                                         </h3>
                                         {product.brand && (
                                             <p className="text-gray-600 dark:text-gray-400 mb-4">{product.brand}</p>
@@ -70,8 +71,4 @@ export function ProductGrid({ catalogues }: ProductGridProps) {
             </div>
         </div>
     );
-}
-
-function formatRupiah(amount: number) {
-    return `Rp ${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }

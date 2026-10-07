@@ -37,7 +37,7 @@ export interface SellerProduct {
   deleted_at?: string | null;
 }
 
-// Detail endpoint merges the catalog spec onto the listing.
+// Detail endpoint merges the catalog spec + seller name onto the listing.
 export interface SellerProductDetail extends SellerProduct {
   // catalog fields (detail only)
   brand?: string;
@@ -46,6 +46,10 @@ export interface SellerProductDetail extends SellerProduct {
   model?: string | null;
   color?: string | null;
   size?: string | null;
+  // seller info (detail only)
+  seller_name?: string;
+  // category names (detail only)
+  categories?: string[];
   // note: barcode, specifications not included in current detail endpoint
 }
 

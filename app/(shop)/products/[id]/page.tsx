@@ -1,4 +1,5 @@
 import { getCatalogueById } from "@/app/actions/catalog.actions";
+import { formatRupiah, formatTitle } from "@/utils/format";
 import { ArrowBack, Inventory, LocalShipping, Shield } from "@mui/icons-material";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -8,10 +9,6 @@ interface PageProps {
     params: Promise<{
         id: string;
     }>;
-}
-
-function formatRupiah(amount: number) {
-    return `Rp ${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }
 
 // Skeleton loader for SSR
@@ -53,7 +50,7 @@ async function ProductDetailContent({ id }: { id: string }) {
     }
 
     const inStock = product.stock > 0;
-    const title = product.title || product.name || "Product";
+    const title = formatTitle(product.title || product.name);
     const brand = product.brand || "Unknown brand";
     const mainImage = product.images?.[0];
     const stockStatus = getStockStatus(product.stock);
@@ -155,6 +152,18 @@ async function ProductDetailContent({ id }: { id: string }) {
                             <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
                                 {brand}
                             </p>
+                            {product.categories && product.categories.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-4">
+                                    {product.categories.map((category) => (
+                                        <span
+                                            key={category}
+                                            className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm capitalize"
+                                        >
+                                            {category}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Price section */}
@@ -178,8 +187,8 @@ async function ProductDetailContent({ id }: { id: string }) {
                             <button
                                 disabled={!inStock}
                                 className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${inStock
-                                        ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-lg hover:shadow-xl"
-                                        : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                                    ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-lg hover:shadow-xl"
+                                    : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                                     }`}
                             >
                                 {inStock ? "Add to cart" : "Currently unavailable"}
@@ -218,10 +227,12 @@ async function ProductDetailContent({ id }: { id: string }) {
                                         <span className="font-medium text-gray-900 dark:text-gray-100">{product.size}</span>
                                     </div>
                                 )}
-                                <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
-                                    <span className="text-gray-600 dark:text-gray-400">Seller ID</span>
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">#{product.seller_id}</span>
-                                </div>
+                                {product.seller_name && (
+                                    <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+                                        <span className="text-gray-600 dark:text-gray-400">Sold by</span>
+                                        <span className="font-medium text-gray-900 dark:text-gray-100">{product.seller_name}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -232,20 +243,19 @@ async function ProductDetailContent({ id }: { id: string }) {
                             </h2>
                             <div className="prose prose-gray dark:prose-invert max-w-none">
                                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                                    {product.description || `This ${product.name || "product"} from ${brand} is available for purchase with secure checkout and fast delivery.`}
+                                    {product.description || `This ${formatTitle(product.name, "product")} from ${brand} is available for purchase with secure checkout and fast delivery.`}
                                 </p>
                             </div>
                         </div>
 
                         {/* Metadata (subtle footer) */}
                         <div className="pt-8 border-t border-gray-200 dark:border-gray-800">
-                            <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
-                                <div>Listed on {new Date(product.created_at).toLocaleDateString("id-ID", {
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                                Listed on {new Date(product.created_at).toLocaleDateString("id-ID", {
                                     day: "numeric",
                                     month: "long",
                                     year: "numeric",
-                                })}</div>
-                                <div>Product ID: {product.id} • Catalog ID: {product.product_id}</div>
+                                })}
                             </div>
                         </div>
                     </div>
@@ -264,8 +274,8 @@ async function ProductDetailContent({ id }: { id: string }) {
                     <button
                         disabled={!inStock}
                         className={`px-6 py-3 rounded-lg font-semibold transition-all ${inStock
-                                ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
-                                : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                            ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
+                            : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                             }`}
                     >
                         {inStock ? "Add to cart" : "Sold out"}
