@@ -3,59 +3,82 @@ import { jwtDecode } from "jwt-decode"; // 👈 Tiny utility
 import { api } from "@/app/lib/api";
 import { logger } from "@/utils/logger";
 
-export async function createSession(accessToken: string, refreshToken: string) {
+/**
+ * Compute the cookie maxAge (seconds remaining) from a JWT's `exp` claim.
+ * Falls back to the provided default if the token can't be decoded.
+ */
+function maxAgeFromToken(token: string, fallbackSeconds: number): number {
+  try {
+    const { exp } = jwtDecode<{ exp: number }>(token);
+    const remaining = exp - Math.floor(Date.now() / 1000);
+    return remaining > 0 ? remaining : fallbackSeconds;
+  } catch {
+    return fallbackSeconds;
+  }
+}
+
+const COOKIE_BASE = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+};
+
+/**
+ * Store the access token cookie. maxAge matches the token's own expiry.
+ */
+export async function setAccessToken(accessToken: string) {
   const cookieStore = await cookies();
-
-  // 1. Decode the tokens to extract the Unix timestamp expiration ('exp')
-  const decodedAccess = jwtDecode<{ exp: number }>(accessToken);
-  const decodedRefresh = jwtDecode<{ exp: number }>(refreshToken);
-
-  // 2. Convert Unix timestamp to remaining seconds (MaxAge expects seconds)
-  const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-
-  const accessMaxAge = decodedAccess.exp - currentTimeInSeconds;
-  const refreshMaxAge = decodedRefresh.exp - currentTimeInSeconds;
-
-  // 3. Set the access token cookie matching Flask exactly
   cookieStore.set("access_token", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: accessMaxAge, // 👈 Dynamically matched!
-    path: "/",
-  });
-
-  // 4. Set the refresh token cookie matching Flask exactly
-  cookieStore.set("refresh_token", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: refreshMaxAge, // 👈 Dynamically matched!
-    path: "/",
+    ...COOKIE_BASE,
+    maxAge: maxAgeFromToken(accessToken, 60 * 60), // default 1h
   });
 }
 
+/**
+ * Create a full session on login: both access + refresh token cookies.
+ */
+export async function createSession(accessToken: string, refreshToken: string) {
+  const cookieStore = await cookies();
+
+  cookieStore.set("access_token", accessToken, {
+    ...COOKIE_BASE,
+    maxAge: maxAgeFromToken(accessToken, 60 * 60), // default 1h
+  });
+
+  cookieStore.set("refresh_token", refreshToken, {
+    ...COOKIE_BASE,
+    maxAge: maxAgeFromToken(refreshToken, 60 * 60 * 24 * 7), // default 7d
+  });
+}
+
+/**
+ * Exchange the stored refresh token for a new access token.
+ * The Flask refresh endpoint returns ONLY a new access_token — the refresh
+ * token keeps its original 7-day lifetime, so we leave that cookie untouched.
+ * Returns the new access token, or throws (and clears the session) on failure.
+ */
 export async function refreshSession() {
   const cookieStore = await cookies();
   const currentRefreshToken = cookieStore.get("refresh_token")?.value;
 
   if (!currentRefreshToken) throw new Error("No refresh token available");
-  logger.debug("session is refreshed " + currentRefreshToken);
-  try {
-    // Call Flask refresh endpoint passing the old refresh token
-    const response = await api.post(
-      "/api/v1/auth/refresh",
-      {},
-      {
-        headers: { Authorization: `Bearer ${currentRefreshToken}` },
-      },
-    );
 
-    const { access_token, refresh_token } = response.data;
-    await createSession(access_token, refresh_token);
-    return access_token;
+  try {
+    const response = await api.post("/api/v1/auth/refresh", {}, {
+      headers: { Authorization: `Bearer ${currentRefreshToken}` },
+      // mark so the response interceptor never tries to refresh a refresh call
+      _skipAuthRefresh: true,
+    } as never);
+
+    const { access_token } = response.data;
+    if (!access_token) throw new Error("Refresh response missing access_token");
+
+    await setAccessToken(access_token);
+    return access_token as string;
   } catch (err) {
-    await deleteSession(); // Log them out if refresh token expired
+    logger.error("Refresh token failed, clearing session: " + err);
+    await deleteSession();
     throw err;
   }
 }
@@ -66,11 +89,36 @@ export async function deleteSession() {
   cookieStore.delete("refresh_token");
 }
 
+/**
+ * Return the current session, refreshing the access token when it has expired
+ * but a valid refresh token is still present. Returns null only when the user
+ * is genuinely logged out (no usable refresh token).
+ */
 export async function getSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
-  if (!token) return null;
+  const accessToken = cookieStore.get("access_token")?.value;
 
-  // Optional: Decode the token here if you want to return user details (like name)
-  return { isAuthenticated: true };
+  if (accessToken) {
+    return { isAuthenticated: true };
+  }
+
+  // Access token gone/expired — try the 7-day refresh token before giving up.
+  const refreshToken = cookieStore.get("refresh_token")?.value;
+  if (!refreshToken) return null;
+
+  try {
+    await refreshSession();
+    return { isAuthenticated: true };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Read the current access token (used by the request interceptor to attach
+ * the Authorization header on server-side calls).
+ */
+export async function getAccessToken(): Promise<string | null> {
+  const cookieStore = await cookies();
+  return cookieStore.get("access_token")?.value ?? null;
 }

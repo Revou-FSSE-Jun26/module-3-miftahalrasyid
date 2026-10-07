@@ -1,5 +1,4 @@
-import axios from "axios";
-import { refreshSession } from "./sessions";
+import axios, { AxiosRequestConfig } from "axios";
 
 // Get the Flask API URL from environment variables, fallback to local Flask port
 const FLASK_API_URL =
@@ -12,35 +11,84 @@ export const api = axios.create({
   },
 });
 
-api.interceptors.response.use(
-  (response) => response, // Jika request sukses, teruskan saja
-  async (error) => {
-    const originalRequest = error.config;
+// Config flag we add to requests that must NOT trigger the refresh-retry loop
+// (the refresh call itself, and already-retried requests).
+interface AuthConfig extends AxiosRequestConfig {
+  _retry?: boolean;
+  _skipAuthRefresh?: boolean;
+}
 
-    // Jika Flask mengembalikan 401 dan request ini belum pernah dicoba ulang
-    if (error.response?.status === 401 && !originalRequest._retry) {
+const isServer = typeof window === "undefined";
+
+/**
+ * Request interceptor (server-side): attach the access token from the httpOnly
+ * cookie as a Bearer header. Client-side requests are left untouched — the
+ * browser can't read httpOnly cookies anyway, and authed calls go through
+ * server actions / Server Components.
+ */
+api.interceptors.request.use(async (config) => {
+  const cfg = config as AuthConfig;
+
+  // Don't overwrite an explicitly-set Authorization header (e.g. the refresh
+  // call passes the refresh token directly).
+  if (isServer && !cfg._skipAuthRefresh && !config.headers?.Authorization) {
+    // Lazy import to avoid a circular dependency with sessions.ts.
+    const { getAccessToken } = await import("@/app/lib/sessions");
+    const token = await getAccessToken();
+    if (token) {
+      config.headers = config.headers ?? {};
+      (config.headers as Record<string, string>).Authorization =
+        `Bearer ${token}`;
+    }
+  }
+
+  return config;
+});
+
+/**
+ * Response interceptor: on a 401, try refreshing the access token once, then
+ * retry the original request. Works on both server and client, but the cookie
+ * writes only succeed within a Server Action / Route Handler / Server Component
+ * request lifecycle (which is where our authed calls run).
+ */
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config as AuthConfig | undefined;
+
+    const status = error.response?.status;
+    const shouldAttemptRefresh =
+      status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest._skipAuthRefresh;
+
+    if (shouldAttemptRefresh && originalRequest) {
       originalRequest._retry = true;
 
-      try {
-        // 1. Panggil utility refresh session untuk meminta token baru ke Flask
-        // Fungsi ini dijalankan di server-side lewat mekanisme Next.js jika dipanggil dari server action
-        const newAccessToken = await refreshSession();
+      if (isServer) {
+        try {
+          const { refreshSession } = await import("@/app/lib/sessions");
+          const newAccessToken = await refreshSession();
 
-        // 2. Pasang access token yang baru ke request yang sempat gagal tadi
-        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+          originalRequest.headers = originalRequest.headers ?? {};
+          (originalRequest.headers as Record<string, string>).Authorization =
+            `Bearer ${newAccessToken}`;
 
-        // 3. Tembak ulang request yang gagal tadi dengan token baru
-        return api(originalRequest);
-      } catch (refreshError) {
-        // Jika refresh token juga gagal/expired, bersihkan session dan tendang ke login
-        if (typeof window !== "undefined") {
-          // 1. Ambil URL path terakhir yang sedang dibuka user saat ini
-          const currentPath = window.location.pathname + window.location.search;
-
-          // 2. Kirim user ke halaman login sambil membawa parameter 'next' secara dinamis
-          window.location.href = `/auth/login?next=${encodeURIComponent(currentPath)}&message=session_expired`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          // Refresh failed (expired/invalid refresh token) — session already
+          // cleared inside refreshSession(). Let the caller handle the 401.
+          return Promise.reject(refreshError);
         }
-        return Promise.reject(refreshError);
+      }
+
+      // Client-side fallback: bounce to login preserving the current path.
+      if (typeof window !== "undefined") {
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = `/auth/login?next=${encodeURIComponent(
+          currentPath,
+        )}&message=session_expired`;
       }
     }
 
