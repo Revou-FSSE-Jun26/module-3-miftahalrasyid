@@ -5,14 +5,14 @@ import { ChangeEvent, KeyboardEvent, KeyboardEventHandler, useState } from 'reac
 function SearchBar() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [query, setQuery] = useState(searchParams.get("q") || "");
+    const [query, setQuery] = useState(searchParams.get("search") || "");
     const handleSearch = () => {
         const params = new URLSearchParams(searchParams.toString());
 
         if (query) {
-            params.set("q", query); // Pasang ?q=keyword
+            params.set("search", query); // Pasang ?search=keyword
         } else {
-            params.delete("q"); // Hapus jika kosong
+            params.delete("search"); // Hapus jika kosong
         }
 
         // 🚀 Pindahkan URL browser. Ini akan memicu Server Component untuk reload otomatis!
@@ -20,8 +20,7 @@ function SearchBar() {
     };
     const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            // TODO Step 2: push to /products?search=<query>
-            router.push(`/products?q=${encodeURIComponent(query)}`);
+            router.push(`/products?search=${encodeURIComponent(query)}`);
         }
     };
     return (
