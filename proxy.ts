@@ -76,12 +76,22 @@ export async function proxy(request: NextRequest) {
   const roles = rolesFromToken(effectiveToken);
   const { pathname } = request.nextUrl;
 
+  const isAuthenticated = !!effectiveToken;
   const isSeller =
     roles.includes("SELLER") ||
     roles.includes("ADMIN") ||
     roles.includes("SUPERADMIN");
   const isAdmin = roles.includes("ADMIN") || roles.includes("SUPERADMIN");
 
+  // /cart and /orders → any authenticated user; guests go to login.
+  if (
+    (pathname.startsWith("/cart") || pathname.startsWith("/orders")) &&
+    !isAuthenticated
+  ) {
+    const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
   // /admin/* → ADMIN or SUPERADMIN only.
   if (pathname.startsWith("/admin") && !isAdmin) {
     return NextResponse.redirect(new URL("/", request.url));
