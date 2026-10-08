@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { logger } from "@/utils/logger";
 import Link from "next/link";
-import { usePathname, useSelectedLayoutSegment } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { logout as logoutAction } from "@/app/actions/auth.actions"
+import { RoleSwitcher } from "@/components/RoleSwitcher"
 
-function HeaderClient({ isLoggedIn }: HeaderClientProps) {
+function HeaderClient({ isLoggedIn, roles }: HeaderClientProps) {
     const pathname = usePathname();
     const navMenus = [
         { path: "/", file: 'app/page.tsx', name: "Home" },
@@ -45,11 +46,14 @@ function HeaderClient({ isLoggedIn }: HeaderClientProps) {
 
                     <div className="flex items-center space-x-4">
                         {isLoggedIn ? (
-                            <form action={logoutAction} className="hidden md:block">
-                                <button type="submit" className="px-4 py-1 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-md text-sm text-red-500 hover:text-red-600 font-medium transition">
-                                    Logout
-                                </button>
-                            </form>
+                            <div className="hidden md:flex items-center gap-3">
+                                <RoleSwitcher roles={roles} currentArea="buyer" />
+                                <form action={logoutAction}>
+                                    <button type="submit" className="px-4 py-1 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-md text-sm text-red-500 hover:text-red-600 font-medium transition">
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
                         ) : (
                             <Link href="/auth/login" className="hidden md:block px-4 py-1 bg-indigo-500 hover:bg-indigo-600 rounded-md text-sm text-white font-medium transition">
                                 Sign in
@@ -107,6 +111,7 @@ function HeaderClient({ isLoggedIn }: HeaderClientProps) {
 }
 interface HeaderClientProps {
     isLoggedIn: boolean;
+    roles: string[];
 }
 interface HeaderNavProps {
     href: string,

@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtDecode } from "jwt-decode";
 import { api } from "@/app/lib/api";
 import {
   COOKIE_BASE,
   ACCESS_TOKEN_FALLBACK,
   maxAgeFromToken,
 } from "@/app/lib/sessionConfig";
+
+function rolesFromToken(token: string | undefined): string[] {
+  if (!token) return [];
+  try {
+    return jwtDecode<{ roles?: string[] }>(token).roles ?? [];
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Proxy (formerly middleware) — runs before every matched request.
@@ -34,15 +44,11 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    const refreshRes = await api.post(
-      "/api/v1/auth/refresh",
-      {},
-      {
-        headers: { Authorization: `Bearer ${refreshToken}` },
-        // never let the response interceptor try to refresh a refresh call
-        _skipAuthRefresh: true,
-      } as never,
-    );
+    const refreshRes = await api.post("/api/v1/auth/refresh", {}, {
+      headers: { Authorization: `Bearer ${refreshToken}` },
+      // never let the response interceptor try to refresh a refresh call
+      _skipAuthRefresh: true,
+    } as never);
 
     const newAccessToken: string | undefined = refreshRes.data?.access_token;
     if (newAccessToken) {
@@ -63,13 +69,33 @@ export async function proxy(request: NextRequest) {
     response.cookies.delete("refresh_token");
   }
 
+  // --- Role-based route guard --------------------------------------------
+  // Use the freshest token available (just-refreshed one wins).
+  const effectiveToken =
+    request.cookies.get("access_token")?.value || accessToken;
+  const roles = rolesFromToken(effectiveToken);
+  const { pathname } = request.nextUrl;
+
+  const isSeller =
+    roles.includes("SELLER") ||
+    roles.includes("ADMIN") ||
+    roles.includes("SUPERADMIN");
+  const isAdmin = roles.includes("ADMIN") || roles.includes("SUPERADMIN");
+
+  // /admin/* → ADMIN or SUPERADMIN only.
+  if (pathname.startsWith("/admin") && !isAdmin) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+  // /seller/* → SELLER (or admin/superadmin, who can preview seller view).
+  if (pathname.startsWith("/seller") && !isSeller) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
   return response;
 }
 
 export const config = {
   // Run on app routes, but skip Next internals, API passthroughs, and static
   // assets so we don't block CSS/JS/images or waste refresh calls.
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|static|.*\\..*).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|static|.*\\..*).*)"],
 };
