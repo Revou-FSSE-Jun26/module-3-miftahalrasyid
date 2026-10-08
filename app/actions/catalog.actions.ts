@@ -1,6 +1,18 @@
 "use server";
-import { api } from "@/app/lib/api";
+import { publicGet } from "@/app/lib/publicFetch";
 import { logger } from "@/utils/logger";
+
+interface ListEnvelope<T> {
+  success: boolean;
+  message: string;
+  data: T[];
+}
+
+interface ItemEnvelope<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
 
 export type ProductStatus =
   | "PENDING"
@@ -53,17 +65,48 @@ export interface SellerProductDetail extends SellerProduct {
   // note: barcode, specifications not included in current detail endpoint
 }
 
+export interface CatalogueFilters {
+  search?: string;
+  category_id?: number;
+  category_name?: string;
+  min_price?: number;
+  max_price?: number;
+  sort?: string;
+  page?: number;
+  per_page?: number;
+}
+
 export async function getCatalogues(
-  searchQuery?: string,
+  filters: CatalogueFilters = {},
 ): Promise<SellerProduct[]> {
   try {
-    const response = await api.get("/api/v1/seller-products", {
-      params: searchQuery ? { search: searchQuery } : {},
-    });
-
-    return response.data?.data || [];
+    const body = await publicGet<ListEnvelope<SellerProduct>>(
+      "/api/v1/seller-products",
+      // publicGet's buildUrl skips undefined/null/"" params automatically.
+      { ...filters },
+    );
+    return body.data || [];
   } catch (error) {
     logger.error("Gagal mengambil data produk seller: " + error);
+    return [];
+  }
+}
+
+/**
+ * Top-N most-ordered listings for the home swiper.
+ * Uses the backend's `sort=-popular` (units sold desc).
+ */
+export async function getPopularCatalogues(
+  limit = 5,
+): Promise<SellerProduct[]> {
+  try {
+    const body = await publicGet<ListEnvelope<SellerProduct>>(
+      "/api/v1/seller-products",
+      { sort: "-popular", per_page: limit },
+    );
+    return body.data || [];
+  } catch (error) {
+    logger.error("Gagal mengambil produk terpopuler: " + error);
     return [];
   }
 }
@@ -72,8 +115,10 @@ export async function getCatalogueById(
   id: string | number,
 ): Promise<SellerProductDetail | null> {
   try {
-    const response = await api.get(`/api/v1/seller-products/${id}`);
-    return response.data?.data ?? null;
+    const body = await publicGet<ItemEnvelope<SellerProductDetail>>(
+      `/api/v1/seller-products/${id}`,
+    );
+    return body.data ?? null;
   } catch (error) {
     logger.error(`Gagal mengambil detail produk seller #${id}: ` + error);
     return null;
