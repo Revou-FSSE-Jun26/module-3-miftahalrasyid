@@ -1,6 +1,7 @@
 "use client"
 import { SellerProduct } from '@/app/actions/catalog.actions';
 import { formatRupiah, formatTitle } from '@/utils/format';
+import { useState } from 'react';
 
 export function ProductCard({ product }: ProductCardProps) {
     const inStock = product.stock > 0;
@@ -9,6 +10,10 @@ export function ProductCard({ product }: ProductCardProps) {
     const imageUrl = product.images?.[0];
     const detailUrl = `/products/${product.id}`;
     const stockStatus = product.stock > 10 ? "In stock" : product.stock > 0 ? "Low stock" : "Sold out";
+
+    // Track image load failure so a broken URL falls back to the gradient
+    // instead of showing the browser's broken-image + alt text.
+    const [imgOk, setImgOk] = useState(true);
 
     return (
         <a href={detailUrl} className="block group">
