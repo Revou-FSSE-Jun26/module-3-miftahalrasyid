@@ -1,28 +1,12 @@
 import { cookies } from "next/headers";
-import { jwtDecode } from "jwt-decode"; // 👈 Tiny utility
 import { api } from "@/app/lib/api";
 import { logger } from "@/utils/logger";
-
-/**
- * Compute the cookie maxAge (seconds remaining) from a JWT's `exp` claim.
- * Falls back to the provided default if the token can't be decoded.
- */
-function maxAgeFromToken(token: string, fallbackSeconds: number): number {
-  try {
-    const { exp } = jwtDecode<{ exp: number }>(token);
-    const remaining = exp - Math.floor(Date.now() / 1000);
-    return remaining > 0 ? remaining : fallbackSeconds;
-  } catch {
-    return fallbackSeconds;
-  }
-}
-
-const COOKIE_BASE = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-};
+import {
+  COOKIE_BASE,
+  ACCESS_TOKEN_FALLBACK,
+  REFRESH_TOKEN_FALLBACK,
+  maxAgeFromToken,
+} from "@/app/lib/sessionConfig";
 
 /**
  * Store the access token cookie. maxAge matches the token's own expiry.
@@ -31,7 +15,7 @@ export async function setAccessToken(accessToken: string) {
   const cookieStore = await cookies();
   cookieStore.set("access_token", accessToken, {
     ...COOKIE_BASE,
-    maxAge: maxAgeFromToken(accessToken, 60 * 60), // default 1h
+    maxAge: maxAgeFromToken(accessToken, ACCESS_TOKEN_FALLBACK),
   });
 }
 
@@ -43,12 +27,12 @@ export async function createSession(accessToken: string, refreshToken: string) {
 
   cookieStore.set("access_token", accessToken, {
     ...COOKIE_BASE,
-    maxAge: maxAgeFromToken(accessToken, 60 * 60), // default 1h
+    maxAge: maxAgeFromToken(accessToken, ACCESS_TOKEN_FALLBACK),
   });
 
   cookieStore.set("refresh_token", refreshToken, {
     ...COOKIE_BASE,
-    maxAge: maxAgeFromToken(refreshToken, 60 * 60 * 24 * 7), // default 7d
+    maxAge: maxAgeFromToken(refreshToken, REFRESH_TOKEN_FALLBACK),
   });
 }
 

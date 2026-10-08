@@ -1,8 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 
 // Get the Flask API URL from environment variables, fallback to local Flask port
-const FLASK_API_URL =
-  process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:5000";
+const FLASK_API_URL = process.env.FLASK_API_URL || "";
 
 export const api = axios.create({
   baseURL: FLASK_API_URL,
