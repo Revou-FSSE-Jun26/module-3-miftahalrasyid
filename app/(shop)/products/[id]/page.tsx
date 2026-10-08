@@ -1,4 +1,5 @@
 import { getCatalogueById } from "@/app/actions/catalog.actions";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatRupiah, formatTitle } from "@/utils/format";
 import { ArrowBack, Inventory, LocalShipping, Shield } from "@mui/icons-material";
 import type { Metadata } from "next";
@@ -209,15 +210,13 @@ async function ProductDetailContent({ id }: { id: string }) {
 
                         {/* Action buttons (divergent layout) */}
                         <div className="pt-4 space-y-4">
-                            <button
-                                disabled={!inStock}
-                                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${inStock
-                                    ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-lg hover:shadow-xl"
-                                    : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                                    }`}
-                            >
-                                {inStock ? "Add to cart" : "Currently unavailable"}
-                            </button>
+                            <AddToCartButton
+                                sellerProductId={product.id}
+                                title={title}
+                                price={product.price}
+                                image={mainImage}
+                                inStock={inStock}
+                            />
                             <div className="grid grid-cols-2 gap-3">
                                 <button className="py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                     Save for later
