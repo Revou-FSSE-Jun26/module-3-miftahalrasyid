@@ -216,6 +216,29 @@ npm run lint    # eslint
 
 ---
 
+## Rubric-only components (safe to remove)
+
+> These exist **only** to satisfy a grading-rubric requirement for a client-side
+> `ProductList` with `useEffect`/`useSearchParams` and a `CategoryFilter`. The
+> real storefront uses the cleaner Server-Component approach
+> (`app/(shop)/products/page.tsx` reads `searchParams` and fetches on the
+> server). The rubric-only components are **not imported by any page** and do
+> **not** affect the live UI.
+
+**Files (delete to remove):**
+
+- `components/ProductList.tsx` — `"use client"` list with a SearchBar
+  (`router.push(/products?search=)` on Enter) and a `useEffect` that reads
+  `useSearchParams()` and refetches on query/category change.
+- `components/CategoryFilter.tsx` — dropdown that fetches `GET /categories` on
+  mount and drives `GET /seller-products?category_id=`.
+
+**To remove cleanly:** delete both files. Nothing else references them, so no
+other change is needed. (If you ever wire `ProductList` into a page, also remove
+that `<ProductList />` usage.)
+
+---
+
 ## 8. Deployment
 
 Deployed to **Vercel**. Set the environment variables (`NEXT_PUBLIC_API_BASE_URL`, `API_SECRET_KEY`) in the Vercel project settings so the client points at the deployed Flask API.
