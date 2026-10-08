@@ -1,7 +1,7 @@
 "use client"
 import { SellerProduct } from '@/app/actions/catalog.actions';
+import { Card } from '@/components/Card';
 import { formatRupiah, formatTitle } from '@/utils/format';
-import { useState } from 'react';
 
 export function ProductCard({ product }: ProductCardProps) {
     const inStock = product.stock > 0;
@@ -11,13 +11,9 @@ export function ProductCard({ product }: ProductCardProps) {
     const detailUrl = `/products/${product.id}`;
     const stockStatus = product.stock > 10 ? "In stock" : product.stock > 0 ? "Low stock" : "Sold out";
 
-    // Track image load failure so a broken URL falls back to the gradient
-    // instead of showing the browser's broken-image + alt text.
-    const [imgOk, setImgOk] = useState(true);
-
     return (
         <a href={detailUrl} className="block group">
-            <article className="relative bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-700 h-full flex flex-col">
+            <Card as="article" className="relative overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-700 h-full flex flex-col">
                 {/* Stock indicator - subtle corner */}
                 <div className={`absolute top-3 right-3 z-10 ${inStock ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'} px-2 py-1 rounded-full text-xs font-medium`}>
                     {stockStatus}
@@ -84,7 +80,7 @@ export function ProductCard({ product }: ProductCardProps) {
                         </div>
                     </div>
                 </div>
-            </article>
+            </Card>
         </a>
     );
 }

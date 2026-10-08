@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/Card";
 import { useEffect, useRef } from "react";
 
 /**
@@ -91,25 +92,28 @@ export function StatsCards() {
   const totalSold = 15812;
   const formattedSales = `${(totalSold / 1000).toFixed(1)}k+`;
 
+  const kpiClass =
+    "flex items-center justify-between !bg-white/80 backdrop-blur-sm !border-[#e6dfda] p-6 shadow-[0_8px_30px_rgba(225,213,201,0.3)]";
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto my-5 px-4 font-sans">
-      <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm border border-[#e6dfda] rounded-2xl p-6 shadow-[0_8px_30px_rgba(225,213,201,0.3)]">
+      <Card className={kpiClass}>
         <div className="flex flex-col">
           <span className="text-[13px] font-bold text-[#8c7e74] uppercase tracking-wider">Aktif Bulan Ini</span>
           <h3 className="text-3xl font-extrabold tracking-tight text-[#2d2521] my-1.5">{formattedUsers}</h3>
           <span className="text-[11px] text-[#a6968a] font-medium">Pengunjung sedang melihat katalog</span>
         </div>
         <div ref={usersRef} className="w-[140px] h-[55px] -mr-2.5" />
-      </div>
+      </Card>
 
-      <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm border border-[#e6dfda] rounded-2xl p-6 shadow-[0_8px_30px_rgba(225,213,201,0.3)]">
+      <Card className={kpiClass}>
         <div className="flex flex-col">
           <span className="text-[13px] font-bold text-[#8c7e74] uppercase tracking-wider">Terjual Bulan Ini</span>
           <h3 className="text-3xl font-extrabold tracking-tight text-[#2d2521] my-1.5">{formattedSales}</h3>
           <span className="text-[11px] text-[#a6968a] font-medium">Produk berhasil dikirim ke pembeli</span>
         </div>
         <div ref={salesRef} className="w-[140px] h-[55px] -mr-2.5" />
-      </div>
+      </Card>
     </div>
   );
 }
