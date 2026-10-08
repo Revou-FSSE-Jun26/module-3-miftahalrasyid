@@ -1,5 +1,7 @@
-import { getOrders } from "@/app/actions/orders.actions";
+import { getMyOrders } from "@/app/actions/orders.actions";
+import { getSession } from "@/app/lib/sessions";
 import { formatRupiah } from "@/utils/format";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "My Orders",
@@ -20,7 +22,15 @@ function statusClasses(status: string) {
 }
 
 export default async function OrdersPage() {
-  const orders = await getOrders();
+  // Auth-only: guests are redirected to login.
+  const session = await getSession();
+  if (!session) {
+    redirect("/auth/login?next=/orders");
+  }
+
+  // Always the caller's own purchases, regardless of role (via /orders/mine).
+  // The all/incoming views live in the seller/admin dashboard, not here.
+  const orders = await getMyOrders();
 
   return (
     <div className="py-8">
@@ -32,14 +42,10 @@ export default async function OrdersPage() {
       {orders.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
           <div className="text-4xl mb-4">🧾</div>
-          <p className="text-gray-600 dark:text-gray-400 mb-2">No orders to show.</p>
-          <p className="text-sm text-gray-500">
-            You may need to{" "}
-            <a href="/auth/login" className="text-indigo-600 hover:underline">
-              sign in
-            </a>{" "}
-            to see your orders.
-          </p>
+          <p className="text-gray-600 dark:text-gray-400 mb-2">No orders yet.</p>
+          <a href="/products" className="text-indigo-600 hover:underline text-sm">
+            Start shopping
+          </a>
         </div>
       ) : (
         <div className="overflow-x-auto border border-gray-200 dark:border-gray-800 rounded-xl">
