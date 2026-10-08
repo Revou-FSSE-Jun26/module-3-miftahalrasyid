@@ -11,28 +11,56 @@ import { useState } from "react";
 
 export function CartView() {
   const router = useRouter();
-  const { items, total, removeItem, updateQty, clear } = useCart();
+  const { items, total, loading, error, initializing, removeItem, updateQty, clear } =
+    useCart();
   const [checkingOut, setCheckingOut] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  const hasUnavailable = items.some((i) => !i.available);
 
   const handleCheckout = async () => {
-    setError(null);
+    setCheckoutError(null);
     setCheckingOut(true);
     const res = await createOrderFromCart(
-      items.map((i) => ({
-        seller_product_id: i.sellerProductId,
-        quantity: i.quantity,
-      })),
+      items
+        .filter((i) => i.available)
+        .map((i) => ({ seller_product_id: i.sellerProductId, quantity: i.quantity })),
     );
-    setCheckingOut(false);
     if (res.success) {
-      clear();
+      await clear(); // empty the server cart now that it's an order
       router.push("/orders");
     } else {
-      setError(res.message);
+      setCheckoutError(res.message);
+      setCheckingOut(false);
     }
   };
 
+  // --- Loading (first load): skeleton rows ---
+  if (initializing) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-100 dark:divide-gray-800">
+            {[0, 1, 2].map((n) => (
+              <div key={n} className="flex items-center gap-4 p-4 animate-pulse">
+                <div className="w-16 h-16 rounded-lg bg-gray-200 dark:bg-gray-800" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-800 rounded" />
+                  <div className="h-3 w-1/4 bg-gray-200 dark:bg-gray-800 rounded" />
+                </div>
+                <div className="h-7 w-24 bg-gray-200 dark:bg-gray-800 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="lg:sticky lg:top-24">
+          <div className="h-56 rounded-xl bg-gray-100 dark:bg-gray-900 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  // --- Empty state ---
   if (items.length === 0) {
     return (
       <div className="text-center py-16 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
@@ -52,17 +80,23 @@ export function CartView() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       {/* LEFT: item list (spans 2 of 3 columns on desktop) */}
       <div className="lg:col-span-2 space-y-4">
-        {error && (
+        {(error || checkoutError) && (
           <div className="rounded-md bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-sm">
-            {error}
+            {checkoutError || error}
           </div>
         )}
-        <div className="border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-100 dark:divide-gray-800">
+        {hasUnavailable && !error && !checkoutError && (
+          <div className="rounded-md bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
+            Some items are no longer available and will be skipped at checkout.
+          </div>
+        )}
+
+        <div
+          className={`border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-100 dark:divide-gray-800 transition-opacity ${loading ? "opacity-60 pointer-events-none" : ""
+            }`}
+        >
           {items.map((item) => (
-            <div
-              key={item.sellerProductId}
-              className="flex items-center gap-4 p-4"
-            >
+            <div key={item.id} className="flex items-center gap-4 p-4">
               <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-[#0a0a0a] overflow-hidden flex-shrink-0">
                 {item.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -82,24 +116,28 @@ export function CartView() {
                 <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                   {formatTitle(item.title)}
                 </p>
-                <p className="text-sm text-gray-500">
-                  {formatRupiah(item.price)}
-                </p>
+                <p className="text-sm text-gray-500">{formatRupiah(item.price)}</p>
+                {!item.available && (
+                  <p className="text-xs text-rose-600 mt-0.5">Unavailable</p>
+                )}
               </div>
 
               {/* Qty stepper */}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => updateQty(item.sellerProductId, item.quantity - 1)}
-                  className="w-7 h-7 rounded border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  onClick={() => updateQty(item.id, item.quantity - 1)}
+                  disabled={loading}
+                  className="w-7 h-7 rounded border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
                   aria-label="Decrease quantity"
                 >
                   −
                 </button>
                 <span className="w-6 text-center text-sm">{item.quantity}</span>
                 <button
-                  onClick={() => updateQty(item.sellerProductId, item.quantity + 1)}
-                  className="w-7 h-7 rounded border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  onClick={() => updateQty(item.id, item.quantity + 1)}
+                  disabled={loading || item.quantity >= item.stock}
+                  title={item.quantity >= item.stock ? "Reached available stock" : undefined}
+                  className="w-7 h-7 rounded border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
                   aria-label="Increase quantity"
                 >
                   +
@@ -112,10 +150,11 @@ export function CartView() {
 
               {/* Delete icon */}
               <button
-                onClick={() => removeItem(item.sellerProductId)}
+                onClick={() => removeItem(item.id)}
+                disabled={loading}
                 aria-label="Remove item"
                 title="Remove"
-                className="p-2 rounded-md text-gray-400 hover:text-rose-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-2 rounded-md text-gray-400 hover:text-rose-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
                 <Delete fontSize="small" />
               </button>
@@ -133,7 +172,7 @@ export function CartView() {
           action={
             <button
               onClick={handleCheckout}
-              disabled={checkingOut}
+              disabled={checkingOut || loading || total <= 0}
               className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-60"
             >
               {checkingOut ? "Placing order…" : "Proceed to checkout"}
