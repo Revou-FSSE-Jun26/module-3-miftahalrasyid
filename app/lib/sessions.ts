@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 import { api } from "@/app/lib/api";
 import { logger } from "@/utils/logger";
 import {
@@ -73,17 +74,43 @@ export async function deleteSession() {
   cookieStore.delete("refresh_token");
 }
 
+export interface Session {
+  isAuthenticated: true;
+  userId: string | null;
+  email: string | null;
+  roles: string[];
+}
+
+/** Decode the useful claims from an access-token JWT. */
+function decodeSession(accessToken: string): Session {
+  try {
+    const claims = jwtDecode<{
+      sub?: string;
+      email?: string;
+      roles?: string[];
+    }>(accessToken);
+    return {
+      isAuthenticated: true,
+      userId: claims.sub ?? null,
+      email: claims.email ?? null,
+      roles: claims.roles ?? [],
+    };
+  } catch {
+    return { isAuthenticated: true, userId: null, email: null, roles: [] };
+  }
+}
+
 /**
- * Return the current session, refreshing the access token when it has expired
- * but a valid refresh token is still present. Returns null only when the user
- * is genuinely logged out (no usable refresh token).
+ * Return the current session (with roles decoded from the JWT), refreshing the
+ * access token when it has expired but a valid refresh token is still present.
+ * Returns null only when the user is genuinely logged out.
  */
-export async function getSession() {
+export async function getSession(): Promise<Session | null> {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value;
 
   if (accessToken) {
-    return { isAuthenticated: true };
+    return decodeSession(accessToken);
   }
 
   // Access token gone/expired — try the 7-day refresh token before giving up.
@@ -91,8 +118,8 @@ export async function getSession() {
   if (!refreshToken) return null;
 
   try {
-    await refreshSession();
-    return { isAuthenticated: true };
+    const newAccessToken = await refreshSession();
+    return decodeSession(newAccessToken);
   } catch {
     return null;
   }
