@@ -58,18 +58,10 @@ export async function getMyOrders(status?: OrderStatus): Promise<Order[]> {
 }
 
 /**
- * Cart = the buyer's PENDING order(s). The backend scopes /orders to the caller
- * and we filter to PENDING. A buyer can have more than one PENDING order, so
- * this returns all of them; the cart page flattens their items.
- */
-export async function getCart(): Promise<Order[]> {
-  return getOrders("PENDING");
-}
-
-/**
- * Checkout: create ONE order from the device cart via POST /orders/.
- * The backend supports multiple items in a single order, so the whole cart
- * becomes a single PENDING order.
+ * Checkout: turn the server cart into ONE order via POST /orders/.
+ * The cart itself lives in `cart_items` (see cart.actions.ts); the caller passes
+ * the lines to buy and the backend creates a single PENDING order from them.
+ * The cart is emptied separately (clearCart) after a successful order.
  */
 export async function createOrderFromCart(
   items: { seller_product_id: number; quantity: number }[],
