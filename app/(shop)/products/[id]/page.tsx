@@ -1,6 +1,7 @@
 import { getCatalogueById } from "@/app/actions/catalog.actions";
 import { formatRupiah, formatTitle } from "@/utils/format";
 import { ArrowBack, Inventory, LocalShipping, Shield } from "@mui/icons-material";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -9,6 +10,30 @@ interface PageProps {
     params: Promise<{
         id: string;
     }>;
+}
+
+/**
+ * Dynamic page metadata: fetch the product and use its real name as the title.
+ * Falls back to a generic title if the product can't be loaded.
+ */
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const { id } = await params;
+    const product = await getCatalogueById(id);
+    if (!product) {
+        return {
+            title: "Product not found — RovoDevShop",
+            description: "The product you are looking for could not be found.",
+        };
+    }
+
+    const name = formatTitle(product.title || product.name);
+    const brand = product.brand ? `${product.brand} · ` : "";
+    return {
+        title: `${name} — RovoDevShop`,
+        description:
+            product.description ||
+            `${brand}${name} available on RovoDevShop. ${formatRupiah(product.price)}.`,
+    };
 }
 
 // Skeleton loader for SSR
