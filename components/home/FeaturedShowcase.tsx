@@ -24,6 +24,19 @@ export function FeaturedShowcase({ products }: FeaturedShowcaseProps) {
       </div>
     );
   }
+  const getCleanImg = (image: string): string => {
+
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      // Potong domainnya dan ambil jalur setelah kata '/uploads/'
+      const cleanPath = image.split('/uploads/');
+      return `/backend-images/${cleanPath}`;
+    }
+
+    // Jika data dari database HANYA berupa nama file atau subfolder (misal: 'seller_products/.../jbl.png')
+    // Bersihkan garis miring di awal jika ada, lalu gabungkan dengan prefix proxy
+    const cleanImage = image.replace(/^\//, "");
+    return `/backend-images/${cleanImage}`;
+  }
 
   return (
     <div className="w-full">
@@ -53,7 +66,7 @@ export function FeaturedShowcase({ products }: FeaturedShowcaseProps) {
                     {image ? (
                       <img
                         className="w-full h-44 object-cover"
-                        src={image}
+                        src={getCleanImg(image)}
                         alt={formatTitle(p.title || p.name)}
                       />
                     ) : (

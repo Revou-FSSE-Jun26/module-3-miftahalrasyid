@@ -241,7 +241,9 @@ that `<ProductList />` usage.)
 
 ## 8. Deployment
 
-Deployed to **Vercel**. Set the environment variables (`NEXT_PUBLIC_API_BASE_URL`, `API_SECRET_KEY`) in the Vercel project settings so the client points at the deployed Flask API.
+Deployed to **Railway**. Set the environment variables (`NEXT_PUBLIC_API_BASE_URL`, `API_SECRET_KEY`) in the Vercel project settings so the client points at the deployed Flask API.
+
+Full interactive Website available online at **[https://module-3-miftahalrasyid-production.up.railway.app/](https://module-3-miftahalrasyid-production.up.railway.app/)**.
 
 ---
 
