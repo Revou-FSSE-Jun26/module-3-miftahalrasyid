@@ -4,14 +4,15 @@ import axios, { AxiosRequestConfig } from "axios";
 
 const isServer = typeof window === "undefined";
 
-// If on the server, look for the internal variable.
-// If in the browser, look for the public variable.
-const FLASK_API_INTERNAL_URL = isServer
-  ? process.env.FLASK_API_INTERNAL_URL || "http://127.0.0.1:5000"
-  : process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:5000";
+// Server-side requests use the internal URL; browser requests use the public
+// one. Both env names must match what's set in .env / Railway variables.
+// (Browser var is NEXT_PUBLIC_* so it's inlined at build time.)
+const BASE_URL = isServer
+  ? process.env.FLASK_API_INTERNAL_URL || "http://127.0.0.1:8000"
+  : process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 
 export const api = axios.create({
-  baseURL: FLASK_API_INTERNAL_URL,
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
