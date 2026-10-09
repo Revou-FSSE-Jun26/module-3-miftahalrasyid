@@ -70,6 +70,7 @@ function getStockStatus(stock: number) {
 
 async function ProductDetailContent({ id }: { id: string }) {
     const product = await getCatalogueById(id);
+    const API_BASE = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:8000";
 
     if (!product) {
         notFound();
@@ -79,6 +80,8 @@ async function ProductDetailContent({ id }: { id: string }) {
     const title = formatTitle(product.title || product.name);
     const brand = product.brand || "Unknown brand";
     const mainImage = product.images?.[0];
+    const fullImageUrl = `${API_BASE.replace(/\/$/, "")}/uploads/${mainImage}`;
+
     const stockStatus = getStockStatus(product.stock);
 
     return (
@@ -107,7 +110,7 @@ async function ProductDetailContent({ id }: { id: string }) {
                         <div className="aspect-square bg-gray-100 dark:bg-[#1a1a1a] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
                             {mainImage ? (
                                 <img
-                                    src={mainImage}
+                                    src={fullImageUrl}
                                     alt={title}
                                     className="w-full h-full object-contain p-8 hover:scale-105 transition-transform duration-300"
                                 />

@@ -21,6 +21,20 @@ export function ProductGrid({ catalogues }: ProductGridProps) {
             </div>
         );
     }
+    const getFullImage = (image: string): string => {
+        // Jika data dari database sudah berupa URL penuh (misal diawali http:// atau https://)
+        if (image.startsWith('http://') || image.startsWith('https://')) {
+            // Potong domainnya dan ambil jalur setelah kata '/uploads/'
+            const cleanPath = image.split('/uploads/');
+            return `/backend-images/${cleanPath}`;
+        }
+
+        // Jika data dari database HANYA berupa nama file atau subfolder (misal: 'seller_products/.../jbl.png')
+        // Bersihkan garis miring di awal jika ada, lalu gabungkan dengan prefix proxy
+        const cleanImage = image.replace(/^\//, "");
+        return `/backend-images/${cleanImage}`;
+    }
+
 
     return (
         <div id="grid" className="lg:col-span-3">
@@ -36,7 +50,7 @@ export function ProductGrid({ catalogues }: ProductGridProps) {
                                 <div className="md:flex">
                                     <div className="md:w-1/2 aspect-[4/3]">
                                         <img
-                                            src={product.images?.[0] || ""}
+                                            src={getFullImage(product.images?.[0] || "")}
                                             alt={formatTitle(product.title || product.name)}
                                             className="w-full h-full object-cover"
                                         />

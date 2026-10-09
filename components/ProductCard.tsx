@@ -11,6 +11,19 @@ export function ProductCard({ product }: ProductCardProps) {
     const detailUrl = `/products/${product.id}`;
     const stockStatus = product.stock > 10 ? "In stock" : product.stock > 0 ? "Low stock" : "Sold out";
 
+    const getCleanImg = (image: string): string => {
+
+        if (image.startsWith('http://') || image.startsWith('https://')) {
+            // Potong domainnya dan ambil jalur setelah kata '/uploads/'
+            const cleanPath = image.split('/uploads/');
+            return `/backend-images/${cleanPath}`;
+        }
+
+        // Jika data dari database HANYA berupa nama file atau subfolder (misal: 'seller_products/.../jbl.png')
+        // Bersihkan garis miring di awal jika ada, lalu gabungkan dengan prefix proxy
+        const cleanImage = image.replace(/^\//, "");
+        return `/backend-images/${cleanImage}`;
+    }
     return (
         <a href={detailUrl} className="block group">
             <Card as="article" className="relative overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-700 h-full flex flex-col">
@@ -23,7 +36,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 <div className="aspect-[4/3] bg-gray-100 dark:bg-[#0a0a0a] overflow-hidden relative">
                     {imageUrl ? (
                         <img
-                            src={imageUrl}
+                            src={getCleanImg(imageUrl)}
                             alt={title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
