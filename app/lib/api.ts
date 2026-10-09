@@ -1,10 +1,17 @@
 import axios, { AxiosRequestConfig } from "axios";
 
 // Get the Flask API URL from environment variables, fallback to local Flask port
-const FLASK_API_URL = process.env.FLASK_API_URL || "";
+
+const isServer = typeof window === "undefined";
+
+// If on the server, look for the internal variable.
+// If in the browser, look for the public variable.
+const FLASK_API_INTERNAL_URL = isServer
+  ? process.env.FLASK_API_INTERNAL_URL || "http://127.0.0.1:5000"
+  : process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:5000";
 
 export const api = axios.create({
-  baseURL: FLASK_API_URL,
+  baseURL: FLASK_API_INTERNAL_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -16,8 +23,6 @@ interface AuthConfig extends AxiosRequestConfig {
   _retry?: boolean;
   _skipAuthRefresh?: boolean;
 }
-
-const isServer = typeof window === "undefined";
 
 /**
  * Request interceptor (server-side): attach the access token from the httpOnly

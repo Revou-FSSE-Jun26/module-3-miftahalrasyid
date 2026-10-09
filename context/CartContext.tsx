@@ -111,7 +111,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     },
     [refresh],
   );
-
+  const removeItemImpl = useCallback(
+    async (cartItemId: number) => {
+      setLoading(true);
+      setError(null);
+      const res = await removeCartItemAction(cartItemId);
+      if (!res.success) setError(res.message);
+      await refresh();
+      setLoading(false);
+    },
+    [refresh],
+  );
   const updateQty = useCallback(
     async (cartItemId: number, qty: number) => {
       // Qty 0 or less => remove the line (matches the stepper's old behavior).
@@ -134,17 +144,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
-  const removeItemImpl = useCallback(
-    async (cartItemId: number) => {
-      setLoading(true);
-      setError(null);
-      const res = await removeCartItemAction(cartItemId);
-      if (!res.success) setError(res.message);
-      await refresh();
-      setLoading(false);
-    },
-    [refresh],
-  );
+
 
   const removeItem = removeItemImpl;
 
