@@ -28,8 +28,23 @@ export function ImageUploader({ listingId, images }: ImageUploaderProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const srcFor = (relPath: string) =>
-    `${API_BASE.replace(/\/$/, "")}/uploads/${relPath}`;
+  // const srcFor = (relPath: string) =>
+  //   `${API_BASE.replace(/\/$/, "")}/uploads/${relPath}`;
+
+  const getCleanImg = (image: string): string => {
+
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      // Potong domainnya dan ambil jalur setelah kata '/uploads/'
+      const cleanPath = image.split('/uploads/');
+      return `/backend-images/${cleanPath}`;
+    }
+
+    // Jika data dari database HANYA berupa nama file atau subfolder (misal: 'seller_products/.../jbl.png')
+    // Bersihkan garis miring di awal jika ada, lalu gabungkan dengan prefix proxy
+    const cleanImage = image.replace(/^\//, "");
+    return `/backend-images/${cleanImage}`;
+  }
+
   const nameOf = (relPath: string) => relPath.split("/").pop() || relPath;
 
   const handleFile = async (file: File) => {
@@ -96,7 +111,7 @@ export function ImageUploader({ listingId, images }: ImageUploaderProps) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={srcFor(relPath)}
+              src={getCleanImg(relPath)}
               alt=""
               className="w-full h-full object-cover"
             />
