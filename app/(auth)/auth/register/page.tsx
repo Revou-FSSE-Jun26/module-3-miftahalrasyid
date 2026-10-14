@@ -1,6 +1,8 @@
 import SignupForm from '@/components/signup-form'; // Adjust path based on your folder structure
 import { JSX } from 'react';
 import Link from 'next/link'
+import { getSession } from '@/app/lib/sessions';
+import { redirect } from 'next/navigation';
 
 export const metadata = {
     title: 'Sign Up - Create Account',
@@ -20,7 +22,11 @@ const SubHeading = (): JSX.Element => (
         </Link>
     </p>
 )
-export default function RegisterPage() {
+export default async function RegisterPage() {
+    const session = await getSession();
+    if (session) {
+        redirect("/");
+    }
     const isEmailVerify = true;
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

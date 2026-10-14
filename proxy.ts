@@ -7,6 +7,7 @@ import {
   ACCESS_TOKEN_FALLBACK,
   maxAgeFromToken,
 } from "@/app/lib/sessionConfig";
+import { canAccessSeller, canAccessAdmin } from "@/app/lib/roles";
 
 function rolesFromToken(token: string | undefined): string[] {
   if (!token) return [];
@@ -77,11 +78,10 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAuthenticated = !!effectiveToken;
-  const isSeller =
-    roles.includes("SELLER") ||
-    roles.includes("ADMIN") ||
-    roles.includes("SUPERADMIN");
-  const isAdmin = roles.includes("ADMIN") || roles.includes("SUPERADMIN");
+  // Role rules live in app/lib/roles.ts so the proxy and the server-side layout
+  // guards (app/lib/guards.ts) stay in sync.
+  const isSeller = canAccessSeller(roles);
+  const isAdmin = canAccessAdmin(roles);
 
   // /cart and /orders → any authenticated user; guests go to login.
   if (

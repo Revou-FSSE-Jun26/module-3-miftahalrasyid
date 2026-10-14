@@ -1,7 +1,7 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
 import { SidebarNav } from "@/components/dashboard/SidebarNav";
-import { getSession } from "@/app/lib/sessions";
+import { requireAdmin } from "@/app/lib/guards";
 
 const ADMIN_LINKS = [
   { label: "Products", href: "/admin/products" },
@@ -13,8 +13,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  const roles = session?.roles ?? [];
+  // Enforce admin access server-side (ADMIN or SUPERADMIN). A plain seller or
+  // buyer is redirected to home before this layout renders.
+  const session = await requireAdmin();
+  const roles = session.roles;
 
   return (
     <DashboardShell

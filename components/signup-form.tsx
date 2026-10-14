@@ -5,6 +5,7 @@ import { Box, TextField, Typography, CircularProgress, Button, Paper, FormContro
 import { useActionState, ReactNode, useState } from 'react'
 import SendEmail from '@/components/send-email'
 import { FormState } from '@/app/schemas/auth.schemas'
+import GoogleLoginButton from '@/components/GoogleLoginButton'
 
 interface SignupFormProps {
     children?: ReactNode;
@@ -95,6 +96,16 @@ export default function SignupForm({ children }: SignupFormProps) {
                 ) : (
                     <>
                         {children}
+                        <GoogleLoginButton />
+                        <div className="relative flex items-center py-5 my-1">
+                            <div className="flex-grow border-t border-gray-300"></div>
+
+                            <span className="flex-shrink mx-4 text-sm font-medium text-gray-400 bg-white px-2">
+                                OR
+                            </span>
+
+                            <div className="flex-grow border-t border-gray-300"></div>
+                        </div>
                         <form action={action} className="space-y-5">
 
                             {/* Email Input Group */}

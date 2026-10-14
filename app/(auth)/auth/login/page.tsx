@@ -1,6 +1,8 @@
 import LoginForm from '@/components/login-form';
+import { getSession } from "@/app/lib/sessions";
 import { JSX } from 'react';
 import Link from 'next/link'
+import { redirect } from 'next/navigation';
 
 export const metadata = {
     title: 'Sign In - Welcome Back',
@@ -8,6 +10,11 @@ export const metadata = {
 
 
 export default async function LoginPage({ searchParams }: PageProps) {
+
+    const session = await getSession();
+    if (session) {
+        redirect("/");
+    }
     const resolvedParams = await searchParams;
     const redirectTo = resolvedParams.next || "/"; // Fallback to main dashboard
 

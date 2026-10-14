@@ -40,7 +40,10 @@ interface CartContextValue {
   error: string | null;
   /** True while the FIRST load is in flight (for skeletons). */
   initializing: boolean;
-  addItem: (sellerProductId: number, qty?: number) => Promise<boolean>;
+  addItem: (
+    sellerProductId: number,
+    qty?: number,
+  ) => Promise<{ success: boolean; message: string }>;
   removeItem: (cartItemId: number) => Promise<void>;
   updateQty: (cartItemId: number, qty: number) => Promise<void>;
   clear: () => Promise<void>;
@@ -97,7 +100,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const addItem = useCallback(
-    async (sellerProductId: number, qty = 1): Promise<boolean> => {
+    async (
+      sellerProductId: number,
+      qty = 1,
+    ): Promise<{ success: boolean; message: string }> => {
       setLoading(true);
       setError(null);
       const res = await addToCartAction(sellerProductId, qty);
@@ -107,7 +113,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setError(res.message);
       }
       setLoading(false);
-      return res.success;
+      return res;
     },
     [refresh],
   );

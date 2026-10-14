@@ -132,7 +132,7 @@ export function CartView() {
                 >
                   −
                 </button>
-                <span className="w-6 text-center text-sm">{item.quantity}</span>
+                <span className="w-6 text-center text-sm text-gray-600">{item.quantity}</span>
                 <button
                   onClick={() => updateQty(item.id, item.quantity + 1)}
                   disabled={loading || item.quantity >= item.stock}

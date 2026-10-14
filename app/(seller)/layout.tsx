@@ -1,7 +1,7 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
 import { SidebarNav } from "@/components/dashboard/SidebarNav";
-import { getSession } from "@/app/lib/sessions";
+import { requireSeller } from "@/app/lib/guards";
 
 const SELLER_LINKS = [{ label: "Products", href: "/seller/products" }];
 
@@ -10,8 +10,10 @@ export default async function SellerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  const roles = session?.roles ?? [];
+  // Enforce seller access server-side (SELLER or admin/superadmin). A plain
+  // buyer is redirected to home before this layout renders.
+  const session = await requireSeller();
+  const roles = session.roles;
 
   return (
     <DashboardShell

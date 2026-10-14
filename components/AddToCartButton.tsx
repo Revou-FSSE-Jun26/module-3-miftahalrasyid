@@ -20,14 +20,16 @@ export function AddToCartButton({ sellerProductId, inStock }: AddToCartButtonPro
   const handleAdd = async () => {
     setStatus("adding");
     setMessage(null);
-    const ok = await addItem(sellerProductId);
-    if (ok) {
+    const res = await addItem(sellerProductId);
+    if (res.success) {
       setStatus("added");
       setTimeout(() => setStatus("idle"), 1500);
     } else {
       setStatus("error");
-      setMessage("Couldn't add to cart. It may be out of stock.");
-      setTimeout(() => setStatus("idle"), 2500);
+      // Surface the backend's actual reason (e.g. "You cannot add your own
+      // listing to the cart", "Insufficient stock") instead of a generic guess.
+      setMessage(res.message || "Couldn't add to cart.");
+      setTimeout(() => setStatus("idle"), 3500);
     }
   };
 
@@ -46,8 +48,8 @@ export function AddToCartButton({ sellerProductId, inStock }: AddToCartButtonPro
         onClick={handleAdd}
         disabled={!inStock || status === "adding"}
         className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${inStock
-            ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-lg hover:shadow-xl disabled:opacity-70"
-            : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+          ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-lg hover:shadow-xl disabled:opacity-70"
+          : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
           }`}
       >
         {label}
