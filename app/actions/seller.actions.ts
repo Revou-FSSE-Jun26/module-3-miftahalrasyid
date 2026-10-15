@@ -69,23 +69,55 @@ export async function createListing(
   }
 }
 
+export interface Pagination {
+  page: number;
+  per_page: number;
+  total: number;
+}
+
+export interface PagedListings {
+  items: SellerProduct[];
+  pagination: Pagination;
+}
+
+export interface ListingListParams {
+  search?: string;
+  page?: number;
+  per_page?: number;
+}
+
+const DEFAULT_PER_PAGE = 10;
+
 /**
  * List the caller's own listings via GET /api/v1/seller-products/mine.
  * The backend scopes this by role: a SELLER sees only their own listings,
  * an ADMIN/SUPERADMIN sees all. Authenticated — goes through the axios `api`
- * instance so the Bearer token is attached.
+ * instance so the Bearer token is attached. Paginated + searchable.
  */
-export async function getMyListings(search?: string): Promise<SellerProduct[]> {
+export async function getMyListings(
+  params: ListingListParams = {},
+): Promise<PagedListings> {
+  const page = params.page && params.page > 0 ? params.page : 1;
+  const per_page = params.per_page ?? DEFAULT_PER_PAGE;
   try {
     // Backend sorts newest-first by default; we pass it explicitly. This works
     // across real pagination (unlike a client-side sort of a single page).
     const response = await api.get("/api/v1/seller-products/mine", {
-      params: { sort: "-created_at", ...(search ? { search } : {}) },
+      params: {
+        sort: "-created_at",
+        page,
+        per_page,
+        ...(params.search ? { search: params.search } : {}),
+      },
     });
-    return response.data?.data || [];
+    const body = response.data ?? {};
+    return {
+      items: body.data || [],
+      pagination: body.pagination || { page, per_page, total: 0 },
+    };
   } catch (error) {
     logger.error("Gagal mengambil listing: " + error);
-    return [];
+    return { items: [], pagination: { page, per_page, total: 0 } };
   }
 }
 
