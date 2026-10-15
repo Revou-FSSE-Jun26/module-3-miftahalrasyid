@@ -1,5 +1,14 @@
 import * as z from "zod";
 
+export const GoogleAuthSchema = z.object({
+  id_token: z.string().min(1, "Google token is required."),
+  // 💡 空文字や文字列で届いた age を、安全に数値（または空なら undefined）に変換する設定
+  age: z.preprocess((val) => {
+    if (val === "" || val === null || val === undefined) return undefined;
+    return Number(val);
+  }, z.number().min(0).optional()),
+});
+
 export const SignupFormSchema = z
   .object({
     email: z.email({ error: "Please enter a valid email." }).trim(),
