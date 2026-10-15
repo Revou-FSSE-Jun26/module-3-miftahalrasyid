@@ -6,6 +6,9 @@ import { requireAdmin } from "@/app/lib/guards";
 const ADMIN_LINKS = [
   { label: "Products", href: "/admin/products" },
   { label: "Seller Products", href: "/admin/seller-products" },
+  { label: "Orders", href: "/admin/orders" },
+  { label: "Categories", href: "/admin/categories" },
+  { label: "Users", href: "/admin/users" },
 ];
 
 export default async function AdminLayout({
