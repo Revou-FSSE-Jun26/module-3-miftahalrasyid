@@ -3,7 +3,10 @@ import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
 import { SidebarNav } from "@/components/dashboard/SidebarNav";
 import { requireSeller } from "@/app/lib/guards";
 
-const SELLER_LINKS = [{ label: "Products", href: "/seller/products" }];
+const SELLER_LINKS = [
+  { label: "Products", href: "/seller/products" },
+  { label: "Incoming Orders", href: "/seller/orders" },
+];
 
 export default async function SellerLayout({
   children,
