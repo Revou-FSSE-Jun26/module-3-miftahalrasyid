@@ -23,6 +23,11 @@ export interface Order {
   status: OrderStatus;
   subtotal?: number;
   tax_amount?: number;
+  tax_percent?: number;
+  discount_amount?: number;
+  discount_percent?: number;
+  payment_status?: string | null;
+  payment_ref?: string | null;
   total: number;
   created_at: string;
   items?: OrderItem[];
@@ -54,6 +59,25 @@ export async function getMyOrders(status?: OrderStatus): Promise<Order[]> {
   } catch (error) {
     logger.error("Gagal mengambil my orders: " + error);
     return [];
+  }
+}
+
+/**
+ * A single order of the caller's own, by id. Sourced from GET /orders/mine so
+ * the ownership guard is identical to the list page (only ever returns an order
+ * the caller actually placed). Returns null when the id isn't in their orders.
+ */
+export async function getMyOrderById(
+  id: string | number,
+): Promise<Order | null> {
+  const orderId = Number(id);
+  if (!Number.isInteger(orderId)) return null;
+  try {
+    const orders = await getMyOrders();
+    return orders.find((o) => o.id === orderId) ?? null;
+  } catch (error) {
+    logger.error(`Gagal mengambil order #${id}: ` + error);
+    return null;
   }
 }
 
