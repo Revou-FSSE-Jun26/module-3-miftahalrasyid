@@ -2,7 +2,6 @@
 
 import { publicGet } from "@/app/lib/publicFetch";
 import { logger } from "@/utils/logger";
-
 // ---------------------------------------------------------------------------
 // Categories (public read)
 // ---------------------------------------------------------------------------
@@ -36,7 +35,7 @@ export async function getCategories(searchQuery?: string): Promise<Category[]> {
  * that submit `category_ids`.
  */
 export async function getCategoriesForSelect(): Promise<Category[]> {
-  const { api } = await import("@/app/lib/api");
+  const { api } = await import("@/app/lib/api/api");
   try {
     const response = await api.get("/api/v1/categories");
     return response.data?.data || [];

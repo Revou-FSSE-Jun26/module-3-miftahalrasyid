@@ -1,3 +1,4 @@
+import { logger } from "@/utils/logger";
 import axios, { AxiosRequestConfig } from "axios";
 
 // Get the Flask API URL from environment variables, fallback to local Flask port
@@ -37,6 +38,7 @@ api.interceptors.request.use(async (config) => {
   // Don't overwrite an explicitly-set Authorization header (e.g. the refresh
   // call passes the refresh token directly).
   if (isServer && !cfg._skipAuthRefresh && !config.headers?.Authorization) {
+    // logger.info("fetch accessToken");
     // Lazy import to avoid a circular dependency with sessions.ts.
     const { getAccessToken } = await import("@/app/lib/sessions");
     const token = await getAccessToken();
