@@ -20,7 +20,7 @@ export default async function SellerLayout({
 
   return (
     <DashboardShell
-      navbar={<DashboardNavbar label="Seller" roles={roles} currentArea="seller" />}
+      navbar={<DashboardNavbar label="Seller" email={session?.email} roles={roles} currentArea="seller" />}
       sidebar={<SidebarNav title="Seller" links={SELLER_LINKS} />}
     >
       {children}
