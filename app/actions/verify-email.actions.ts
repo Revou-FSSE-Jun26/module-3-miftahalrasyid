@@ -1,5 +1,5 @@
 import "server-only";
-import { api } from "@/app/lib/api";
+import { api } from "@/app/lib/api/api";
 import axios from "axios";
 import { logger } from "@/utils/logger";
 

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { GoogleAuthSchema } from "../schemas/auth.schemas";
 import { createSession } from "../lib/sessions";
-import { api } from "../lib/api";
+import { api } from "../lib/api/api";
 
 interface GoogleActionState {
   success: boolean;

@@ -6,7 +6,7 @@ import {
   type LoginFormState,
   GoogleAuthSchema,
 } from "@/app/schemas/auth.schemas";
-import { api } from "@/app/lib/api";
+import { api } from "@/app/lib/api/api";
 import axios from "axios";
 import { createSession, deleteSession } from "../lib/sessions";
 import { redirect } from "next/navigation";
@@ -56,7 +56,8 @@ export async function signup(
 
 export async function logout() {
   await deleteSession();
-  redirect("/");
+  // redirect("/");
+  return { success: true };
 }
 
 export async function login(

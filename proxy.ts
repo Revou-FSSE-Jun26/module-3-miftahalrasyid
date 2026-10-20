@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtDecode } from "jwt-decode";
-import { api } from "@/app/lib/api";
+import { api } from "@/app/lib/api/api";
 import {
   COOKIE_BASE,
   ACCESS_TOKEN_FALLBACK,

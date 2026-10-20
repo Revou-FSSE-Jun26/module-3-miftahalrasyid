@@ -1,6 +1,6 @@
 "use server";
 
-import { api } from "@/app/lib/api";
+import { api } from "@/app/lib/api/api";
 import { logger } from "@/utils/logger";
 import { revalidatePath } from "next/cache";
 import axios from "axios";
@@ -162,6 +162,7 @@ export async function updateListing(
   id: number,
   input: UpdateListingInput,
 ): Promise<UpdateListingResult> {
+  logger.info(input, "here is all the input form data");
   const payload = Object.fromEntries(
     Object.entries(input).filter(([, v]) => v !== undefined && v !== ""),
   );

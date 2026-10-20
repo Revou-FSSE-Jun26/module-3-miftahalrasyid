@@ -1,6 +1,6 @@
 "use server";
 
-import { api } from "@/app/lib/api";
+import { api } from "@/app/lib/api/api";
 import { logger } from "@/utils/logger";
 
 // ---------------------------------------------------------------------------
@@ -49,7 +49,8 @@ const EMPTY: CartResponse = {
 /** Pull a human-readable message out of an axios error, with a fallback. */
 function errMessage(error: unknown, fallback: string): string {
   if (typeof error === "object" && error !== null && "response" in error) {
-    const resp = (error as { response?: { data?: { message?: string } } }).response;
+    const resp = (error as { response?: { data?: { message?: string } } })
+      .response;
     if (resp?.data?.message) return resp.data.message;
   }
   return fallback;
@@ -58,7 +59,9 @@ function errMessage(error: unknown, fallback: string): string {
 /** Fetch the caller's cart (lines + summary). Returns an empty cart on error. */
 export async function getCart(): Promise<CartResponse> {
   try {
-    const response = await api.get("/api/v1/cart/", { params: { per_page: 30 } });
+    const response = await api.get("/api/v1/cart/", {
+      params: { per_page: 30 },
+    });
     return {
       items: response.data?.data ?? [],
       summary: response.data?.summary ?? EMPTY.summary,
@@ -79,10 +82,16 @@ export async function addToCart(
       seller_product_id: sellerProductId,
       quantity,
     });
-    return { success: true, message: response.data?.message || "Item added to cart" };
+    return {
+      success: true,
+      message: response.data?.message || "Item added to cart",
+    };
   } catch (error) {
     logger.error("addToCart failed: " + error);
-    return { success: false, message: errMessage(error, "Failed to add item to cart") };
+    return {
+      success: false,
+      message: errMessage(error, "Failed to add item to cart"),
+    };
   }
 }
 
@@ -92,22 +101,32 @@ export async function updateCartItem(
   quantity: number,
 ): Promise<CartActionResult> {
   try {
-    const response = await api.patch(`/api/v1/cart/items/${cartItemId}`, { quantity });
+    const response = await api.patch(`/api/v1/cart/items/${cartItemId}`, {
+      quantity,
+    });
     return { success: true, message: response.data?.message || "Cart updated" };
   } catch (error) {
     logger.error("updateCartItem failed: " + error);
-    return { success: false, message: errMessage(error, "Failed to update cart item") };
+    return {
+      success: false,
+      message: errMessage(error, "Failed to update cart item"),
+    };
   }
 }
 
 /** Remove a single line from the cart. */
-export async function removeCartItem(cartItemId: number): Promise<CartActionResult> {
+export async function removeCartItem(
+  cartItemId: number,
+): Promise<CartActionResult> {
   try {
     const response = await api.delete(`/api/v1/cart/items/${cartItemId}`);
     return { success: true, message: response.data?.message || "Item removed" };
   } catch (error) {
     logger.error("removeCartItem failed: " + error);
-    return { success: false, message: errMessage(error, "Failed to remove item") };
+    return {
+      success: false,
+      message: errMessage(error, "Failed to remove item"),
+    };
   }
 }
 
@@ -118,6 +137,9 @@ export async function clearCart(): Promise<CartActionResult> {
     return { success: true, message: response.data?.message || "Cart cleared" };
   } catch (error) {
     logger.error("clearCart failed: " + error);
-    return { success: false, message: errMessage(error, "Failed to clear cart") };
+    return {
+      success: false,
+      message: errMessage(error, "Failed to clear cart"),
+    };
   }
 }

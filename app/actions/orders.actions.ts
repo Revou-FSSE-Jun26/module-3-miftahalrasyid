@@ -1,6 +1,6 @@
 "use server";
 
-import { api } from "@/app/lib/api";
+import { api } from "@/app/lib/api/api";
 import { logger } from "@/utils/logger";
 
 // ---------------------------------------------------------------------------
@@ -98,6 +98,7 @@ export async function createOrderFromCart(
       name: `cart order ${Date.now()}`,
       items,
     });
+
     return {
       success: true,
       message: response.data?.message || "Order created.",

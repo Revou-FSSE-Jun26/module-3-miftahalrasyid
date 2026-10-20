@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
-import { api } from "@/app/lib/api";
+import { api } from "@/app/lib/api/api";
 import { logger } from "@/utils/logger";
 import {
   COOKIE_BASE,

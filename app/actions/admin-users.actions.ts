@@ -1,6 +1,6 @@
 "use server";
 
-import { api } from "@/app/lib/api";
+import { api } from "@/app/lib/api/api";
 import { getAccessToken } from "@/app/lib/sessions";
 import { logger } from "@/utils/logger";
 import { revalidatePath } from "next/cache";
