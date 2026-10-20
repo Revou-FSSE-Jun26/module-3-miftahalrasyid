@@ -295,15 +295,11 @@ async function ProductDetailContent({ id }: { id: string }) {
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">{stockStatus.text}</div>
                     </div>
-                    <button
-                        disabled={!inStock}
-                        className={`px-6 py-3 rounded-lg font-semibold transition-all ${inStock
-                            ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
-                            : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                            }`}
-                    >
-                        {inStock ? "Add to cart" : "Sold out"}
-                    </button>
+                    <AddToCartButton
+                        sellerProductId={product.id}
+                        inStock={inStock}
+                        variant="compact"
+                    />
                 </div>
             </div>
         </div>

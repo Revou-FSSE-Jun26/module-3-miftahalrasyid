@@ -1,6 +1,6 @@
 "use client";
 
-import React, { RefObject, useCallback, useEffect } from 'react'
+import React, { RefObject, useCallback, useEffect, useRef } from 'react'
 
 function GlobalEventProvider({ children }: { children: React.ReactNode }) {
     const handleGlobalClick = useCallback((event: MouseEvent) => {
@@ -26,18 +26,22 @@ export function useClickOutside(
     componentRef: RefObject<HTMLElement | null>,
     callback: () => void
 ) {
+    const savedCallback = useRef(callback);
+    useEffect(() => {
+        savedCallback.current = callback;
+    }, [callback]);
     useEffect(() => {
         const handleBroadcastReceived = (event: Event) => {
             const customEvent = event as CustomEvent<{ target: HTMLElement }>;
             const clickedElement = customEvent.detail?.target;
 
             if (componentRef.current && clickedElement && !componentRef.current.contains(clickedElement)) {
-                callback();
+                savedCallback.current();
             }
         }
         window.addEventListener('globalClickOutside', handleBroadcastReceived)
         return () => window.removeEventListener('globalClickOutside', handleBroadcastReceived)
-    }, [componentRef, callback])
+    }, [componentRef])
 }
 
 export default GlobalEventProvider

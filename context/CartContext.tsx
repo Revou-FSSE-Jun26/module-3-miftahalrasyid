@@ -46,7 +46,7 @@ interface CartContextValue {
   ) => Promise<{ success: boolean; message: string }>;
   removeItem: (cartItemId: number) => Promise<void>;
   updateQty: (cartItemId: number, qty: number) => Promise<void>;
-  clear: () => Promise<void>;
+  clear: (options?: { localOnly?: boolean }) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -77,6 +77,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   // Guard so a slow mutation can't overwrite a newer refresh.
   const inflight = useRef(0);
 
@@ -154,9 +155,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const removeItem = removeItemImpl;
 
-  const clear = useCallback(async () => {
+  const clear = useCallback(async (options?: { localOnly?: boolean }) => {
     setLoading(true);
     setError(null);
+
+    // clear cart when log out.   
+    if (options?.localOnly) {
+      setItems([]); // Wipes the items array, which instantly drops count and total to 0
+      setLoading(false);
+      return;
+    }
+
     const res = await clearCartAction();
     if (!res.success) setError(res.message);
     await refresh();

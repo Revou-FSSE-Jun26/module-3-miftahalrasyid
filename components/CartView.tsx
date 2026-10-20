@@ -1,6 +1,8 @@
 "use client";
 
 import { createOrderFromCart } from "@/app/actions/orders.actions";
+import { getMyAddresses } from "@/app/actions/address.actions";
+import { initiatePayment } from "@/app/actions/payment.actions";
 import { useCart } from "@/context/CartContext";
 import { OrderSummary } from "@/components/OrderSummary";
 import { formatRupiah, formatTitle } from "@/utils/format";
@@ -15,24 +17,52 @@ export function CartView() {
     useCart();
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  // Set when the user has no default address — triggers the "set up address" CTA.
+  const [needsAddress, setNeedsAddress] = useState(false);
 
   const hasUnavailable = items.some((i) => !i.available);
 
   const handleCheckout = async () => {
     setCheckoutError(null);
+    setNeedsAddress(false);
     setCheckingOut(true);
-    const res = await createOrderFromCart(
+
+    // 1. A default shipping address is required before placing an order.
+    const addresses = await getMyAddresses();
+    const defaultAddress = addresses.find((a) => a.is_default);
+    if (!defaultAddress) {
+      setNeedsAddress(true);
+      setCheckingOut(false);
+      return;
+    }
+
+    // 2. Turn the cart into a PENDING order.
+    const order = await createOrderFromCart(
       items
         .filter((i) => i.available)
         .map((i) => ({ seller_product_id: i.sellerProductId, quantity: i.quantity })),
     );
-    if (res.success) {
-      await clear(); // empty the server cart now that it's an order
-      router.push("/orders");
-    } else {
-      setCheckoutError(res.message);
+    if (!order.success || !order.id) {
+      setCheckoutError(order.message);
       setCheckingOut(false);
+      return;
     }
+
+    // 3. Empty the server cart, then initiate payment and redirect to Midtrans.
+    await clear();
+    const payment = await initiatePayment(order.id, defaultAddress.id);
+    if (payment.success && payment.redirectUrl) {
+      window.location.href = payment.redirectUrl;
+      return;
+    }
+
+    // Order was created but payment couldn't start — send them to Orders so the
+    // pending order is visible and they can retry payment there.
+    setCheckoutError(
+      payment.message + " Your order was saved as pending.",
+    );
+    setCheckingOut(false);
+    router.push("/orders");
   };
 
   // --- Loading (first load): skeleton rows ---
@@ -80,6 +110,19 @@ export function CartView() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       {/* LEFT: item list (spans 2 of 3 columns on desktop) */}
       <div className="lg:col-span-2 space-y-4">
+        {needsAddress && (
+          <div className="rounded-md bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm flex flex-wrap items-center justify-between gap-3">
+            <span>
+              You need a default shipping address before checking out.
+            </span>
+            <Link
+              href="/my-account"
+              className="inline-flex items-center px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-medium transition-colors"
+            >
+              Set up your address
+            </Link>
+          </div>
+        )}
         {(error || checkoutError) && (
           <div className="rounded-md bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-sm">
             {checkoutError || error}
@@ -175,7 +218,7 @@ export function CartView() {
               disabled={checkingOut || loading || total <= 0}
               className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-60"
             >
-              {checkingOut ? "Placing order…" : "Proceed to checkout"}
+              {checkingOut ? "Processing…" : "Proceed to checkout"}
             </button>
           }
         />
