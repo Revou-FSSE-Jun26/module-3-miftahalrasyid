@@ -28,6 +28,7 @@
     "swiper": "^14.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4",
     "@types/axios": "^0.14.4",
     "@types/bcryptjs": "^3.0.0",
