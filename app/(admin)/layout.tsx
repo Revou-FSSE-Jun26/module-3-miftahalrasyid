@@ -2,6 +2,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
 import { SidebarNav } from "@/components/dashboard/SidebarNav";
 import { requireAdmin } from "@/app/lib/guards";
+import { logger } from "@/utils/logger";
 
 const ADMIN_LINKS = [
   { label: "Products", href: "/admin/products" },
@@ -23,7 +24,7 @@ export default async function AdminLayout({
 
   return (
     <DashboardShell
-      navbar={<DashboardNavbar label="Admin" roles={roles} currentArea="admin" />}
+      navbar={<DashboardNavbar label="Admin" email={session?.email} roles={roles} currentArea="admin" />}
       sidebar={<SidebarNav title="Admin" links={ADMIN_LINKS} />}
     >
       {children}

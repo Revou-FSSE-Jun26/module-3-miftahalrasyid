@@ -1,19 +1,23 @@
 "use client"
+"use client"
 import { useState } from "react";
 import { logger } from "@/utils/logger";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import { logout as logoutAction } from "@/app/actions/auth.actions"
 import { RoleSwitcher } from "@/components/RoleSwitcher"
+import { CartButton } from "@/components/CartButton"
+import { useCart } from "@/context/CartContext";
+import UserDropdown from "./UserDropdown";
 
-function HeaderClient({ isLoggedIn, roles }: HeaderClientProps) {
+function HeaderClient({ isLoggedIn, roles, email }: HeaderClientProps) {
+    const router = useRouter();
+    const { clear } = useCart();
     const pathname = usePathname();
     const navMenus = [
         { path: "/", file: 'app/page.tsx', name: "Home" },
         { path: "/products", file: 'app/products/page.tsx', name: "Products" },
         { path: "/categories", file: 'app/categories/page.tsx', name: "Categories" },
-        { path: "/orders", file: 'app/orders/page.tsx', name: "Orders" },
-        { path: "/cart", name: "Cart" },
         { path: "/about", name: "About" },
     ]
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,6 +28,25 @@ function HeaderClient({ isLoggedIn, roles }: HeaderClientProps) {
     const closeMenu = () => {
         setIsMenuOpen(false);
     }
+    const handleLogout = async () => {
+        try {
+            // 1. Clear the client-side cart items array instantly (drops badge count to 0)
+            clear({ localOnly: true });
+
+            // 2. Call your Server Action to wipe backend cookies safely
+            const result = await logoutAction();
+
+            if (result?.success) {
+                // 3. Force Next.js client cache to re-evaluate the current page layout tracks
+                router.refresh();
+
+                // 4. Navigate smoothly to the entry guest view landing page
+                router.push('/');
+            }
+        } catch (error) {
+            console.error("Proses pembersihan data logout bermasalah:", error);
+        }
+    };
     return (
         <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,14 +68,17 @@ function HeaderClient({ isLoggedIn, roles }: HeaderClientProps) {
                     </nav>
 
                     <div className="flex items-center space-x-4">
+                        {/* Cart icon with live count — sits left of sign in / logout. */}
+                        <CartButton />
+
                         {isLoggedIn ? (
                             <div className="hidden md:flex items-center gap-3">
-                                <RoleSwitcher roles={roles} currentArea="buyer" />
-                                <form action={logoutAction}>
-                                    <button type="submit" className="px-4 py-1 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-md text-sm text-red-500 hover:text-red-600 font-medium transition">
-                                        Logout
-                                    </button>
-                                </form>
+                                <UserDropdown
+                                    currentArea="buyer"
+                                    userEmail={email}
+                                    roles={roles}
+                                    onLogout={handleLogout}
+                                />
                             </div>
                         ) : (
                             <Link href="/auth/login" className="hidden md:block px-4 py-1 bg-indigo-500 hover:bg-indigo-600 rounded-md text-sm text-white font-medium transition">
@@ -91,9 +117,10 @@ function HeaderClient({ isLoggedIn, roles }: HeaderClientProps) {
                         return <NavMenus key={index} href={menu.path} active={active} mobile>{menu.name}</NavMenus>
                     })}
                     <div className="pt-6 border-t border-gray-100">
+
                         {isLoggedIn ? (
                             <button
-                                onClick={() => { logoutAction(); closeMenu(); }}
+                                onClick={() => { handleLogout(); closeMenu(); }}
                                 className="block text-center w-full py-3 bg-red-500 hover:bg-red-600 rounded-md text-white font-medium transition"
                             >
                                 Logout
@@ -112,6 +139,7 @@ function HeaderClient({ isLoggedIn, roles }: HeaderClientProps) {
 interface HeaderClientProps {
     isLoggedIn: boolean;
     roles: string[];
+    email?: string | null;
 }
 interface HeaderNavProps {
     href: string,
