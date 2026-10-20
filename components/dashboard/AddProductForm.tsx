@@ -6,7 +6,8 @@ import {
 } from "@/app/actions/seller.actions";
 import type { Category } from "@/app/actions/categories.actions";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { SubmitEvent, useState } from "react";
+import { logger } from "@/utils/logger";
 
 interface FormState {
   brand: string;
@@ -82,8 +83,8 @@ export function AddProductForm({ categories }: { categories: Category[] }) {
     setSelectedCategories((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
     );
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  // logger.info(categories, "data is received");
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setServerError(null);
 
@@ -240,7 +241,7 @@ export function AddProductForm({ categories }: { categories: Category[] }) {
         </button>
       </div>
       <p className="text-xs text-gray-500">
-        New listings start as <strong>PENDING</strong> and await admin approval.
+        New listings will be sent to admin for approval.
         Images are added on the next step.
       </p>
     </form>

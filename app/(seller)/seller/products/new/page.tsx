@@ -11,7 +11,7 @@ export default async function NewSellerProductPage() {
     <div>
       <PageHeader
         title="New Listing"
-        subtitle="Create a listing. It starts PENDING; add images on the next step."
+        subtitle="Create a listing. Add images after product creation."
         createHref="/seller/products"
         createLabel="Back to list"
       />

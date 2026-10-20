@@ -5,9 +5,14 @@ import {
   updateListing,
   type UpdateListingInput,
 } from "@/app/actions/seller.actions";
+import {
+  updateListing as adminUpdateListing,
+  type UpdateListingInput as AdminUpdateListingInput
+} from "@/app/actions/admin.actions"
 import { formatTitle } from "@/utils/format";
+import { logger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { SubmitEvent, useState } from "react";
 
 interface FormState {
   title: string;
@@ -36,7 +41,7 @@ function validate(data: FormState): FormErrors {
   return errors;
 }
 
-export function ListingEditForm({ listing }: { listing: SellerProduct }) {
+export function ListingEditForm({ listing, roles }: { listing: SellerProduct, roles?: Array<"ADMIN" | "SUPERADMIN" | "BUYER" | "SELLER"> }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>({
     title: listing.title || "",
@@ -52,19 +57,25 @@ export function ListingEditForm({ listing }: { listing: SellerProduct }) {
 
   // Seller may only toggle ACTIVE<->INACTIVE. Other statuses are shown but
   // not selectable (admin-controlled).
+  const isAdmin = roles?.includes('ADMIN')
+  const ADMIN_CATEGORY_STATUS = ["ACTIVE", "REJECTED", "SUSPENDED", "PENDING"] as const
+  const SELLER_CATEGORY_STATUS = ["ACTIVE", "INACTIVE"] as const
+
+  const SELECT_OPTIONS = isAdmin ? ADMIN_CATEGORY_STATUS : SELLER_CATEGORY_STATUS
+
   const sellerToggleable =
-    listing.status === "ACTIVE" || listing.status === "INACTIVE";
+    listing.status === "ACTIVE" || "INACTIVE";
 
   const update =
     (field: keyof FormState) =>
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLSelectElement
-      >,
-    ) =>
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      (
+        e: React.ChangeEvent<
+          HTMLInputElement | HTMLSelectElement
+        >,
+      ) =>
+        setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setServerError(null);
     setNotice(null);
@@ -73,12 +84,25 @@ export function ListingEditForm({ listing }: { listing: SellerProduct }) {
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
-    const input: UpdateListingInput = {
-      title: form.title.trim(),
-      price: Number(form.price),
-      stock: form.stock.trim() ? Number(form.stock) : 0,
-      sku: form.sku.trim() || undefined,
-    };
+    const input = () => {
+
+      const baseInput = {
+        price: Number(form.price),
+        stock: form.stock.trim() ? Number(form.stock) : 0,
+      };
+
+      if (isAdmin) {
+        return {
+          // ...baseInput,
+          // title: form.title.trim(),
+          status: form.status
+        } as AdminUpdateListingInput;
+      }
+      return {
+        ...baseInput,
+        ...(form.sku.trim() ? { sku: form.sku.trim() } : {})
+      } as UpdateListingInput;
+    }
     // Only send status when the seller legitimately toggled it.
     if (
       sellerToggleable &&
@@ -89,7 +113,8 @@ export function ListingEditForm({ listing }: { listing: SellerProduct }) {
     }
 
     setSaving(true);
-    const result = await updateListing(listing.id, input);
+    // const result = await updateListing(listing.id, input as UpdateListingInput);
+    const result = isAdmin ? await adminUpdateListing(listing.id, input() as AdminUpdateListingInput) : await updateListing(listing.id, input() as UpdateListingInput);
     setSaving(false);
 
     if (!result.success) {
@@ -110,7 +135,7 @@ export function ListingEditForm({ listing }: { listing: SellerProduct }) {
   const field = (
     label: string,
     key: keyof FormState,
-    opts: { type?: string; required?: boolean } = {},
+    opts: { type?: string; required?: boolean, disabled?: boolean } = {},
   ) => (
     <div>
       <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">
@@ -121,7 +146,8 @@ export function ListingEditForm({ listing }: { listing: SellerProduct }) {
         type={opts.type || "text"}
         value={form[key]}
         onChange={update(key)}
-        className="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1a1a1a] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        disabled={opts.disabled}
+        className={`block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1a1a1a] disabled:bg-gray-100 px-3 py-2 text-sm text-gray-900 disabled:text-gray-600 dark:text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500`}
       />
       {errors[key] && <p className="text-xs text-rose-600 mt-1">{errors[key]}</p>}
     </div>
@@ -153,11 +179,11 @@ export function ListingEditForm({ listing }: { listing: SellerProduct }) {
         </div>
       )}
 
-      {field("Title", "title", { required: true })}
+      {field("Title", "title", { required: false, disabled: isAdmin ? false : true })}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {field("Price (IDR)", "price", { type: "number", required: true })}
-        {field("Stock", "stock", { type: "number" })}
-        {field("SKU", "sku")}
+        {field("Price (IDR)", "price", { type: "number", required: isAdmin ? false : true, disabled: isAdmin ? true : false })}
+        {field("Stock", "stock", { type: "number", disabled: isAdmin ? true : false })}
+        {field("SKU", "sku", { disabled: isAdmin ? true : false })}
       </div>
 
       <div>
@@ -170,8 +196,13 @@ export function ListingEditForm({ listing }: { listing: SellerProduct }) {
             onChange={update("status")}
             className="block w-full sm:w-48 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1a1a1a] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
+            {SELECT_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+            {/* <option value="ACTIVE">ACTIVE</option>
+            <option value="SUSPENDED">SUSPENDED</option> */}
           </select>
         ) : (
           <div className="text-sm">
