@@ -2,7 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import { ListItemButton, ListItemIcon, Badge, ListItemText } from '@mui/material'
 import { RoleSwitcher, type Area } from "./RoleSwitcher";
+import { usePathname } from "next/navigation";
 
 interface UserDropdownProps {
     userEmail?: string | null;
@@ -15,7 +20,7 @@ interface UserDropdownProps {
 export default function UserDropdown({ userEmail = "user@example.com", roles, onLogout, currentArea, types = "icon" }: UserDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-
+    const pathname = usePathname();
     // Close the popup automatically if clicking outside of it
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -84,35 +89,64 @@ export default function UserDropdown({ userEmail = "user@example.com", roles, on
                             <RoleSwitcher roles={roles} currentArea={currentArea} />
                         </div>
                         {/* Navigation Links */}
-                        <div className="space-y-0.5">
-                            <Link
-                                href="/my-account"
-                                onClick={() => setIsOpen(false)}
-                                className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition dark:text-gray-300 dark:hover:bg-gray-800"
+                        {/* <div className="space-y-0.5"> */}
+                        <Link
+                            href="/my-account"
+                            onClick={() => setIsOpen(false)}
+                            /* 🚀 Changed to w-full and matched padding with the second link */
+                            className="flex w-full items-center rounded-lg p-0 text-sm text-gray-700 transition dark:text-gray-300"
+                        >
+                            <ListItemButton
+                                selected={pathname === "/my-account"}
+                                aria-current={pathname === "/my-account" ? "page" : undefined}
+                                className="w-full rounded-lg" /* Ensures the internal UI button fills the link space */
                             >
-                                👤 My Account
-                            </Link>
+                                <ListItemIcon>
+                                    <PersonRoundedIcon />
+                                </ListItemIcon>
+                                <ListItemText primary="My Account" />
+                            </ListItemButton>
+                        </Link>
 
-                            <Link
-                                href="/orders"
-                                onClick={() => setIsOpen(false)}
-                                className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition dark:text-gray-300 dark:hover:bg-gray-800"
+                        <Link
+                            href="/orders"
+                            onClick={() => setIsOpen(false)}
+                            className="flex w-full items-center rounded-lg p-0 text-sm text-gray-700 transition dark:text-gray-300"
+                        >
+                            <ListItemButton
+                                selected={pathname === "/orders"}
+                                aria-current={pathname === "/orders" ? "page" : undefined}
+                                className="w-full rounded-lg"
                             >
-                                📦 My Orders
-                            </Link>
-                        </div>
+                                <ListItemIcon>
+                                    <LocalShippingRoundedIcon />
+                                </ListItemIcon>
+                                <ListItemText primary="My Orders" />
+                            </ListItemButton>
+                        </Link>
+                        {/* </div> */}
 
                         {/* Logout Action Button */}
                         <div className="mt-1 border-t border-gray-100 dark:border-gray-800 pt-1">
-                            <button
+                            <ListItemButton
+                                /* 1. Add your click handlers directly here */
                                 onClick={() => {
                                     setIsOpen(false);
                                     onLogout();
                                 }}
-                                className="flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition dark:text-red-400 dark:hover:bg-red-950/30"
+                                /* 2. Combine your structural classes and color styles */
+                                className="w-full rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 transition-colors"
                             >
-                                🚪 Logout
-                            </button>
+                                <ListItemIcon className="text-red-600 dark:text-red-400">
+                                    <LogoutRoundedIcon color="error" />
+                                </ListItemIcon>
+
+                                {/* 3. Pass styling classes to style the text label directly if needed */}
+                                <ListItemText
+                                    primary="Logout"
+                                    slotProps={{ primary: { className: "text-red-600 font-medium text-sm" } }}
+                                />
+                            </ListItemButton>
                         </div>
                     </div>
                 )

@@ -15,10 +15,12 @@ function HeaderClient({ isLoggedIn, roles, email }: HeaderClientProps) {
     const { clear } = useCart();
     const pathname = usePathname();
     const navMenus = [
-        { path: "/", file: 'app/page.tsx', name: "Home" },
-        { path: "/products", file: 'app/products/page.tsx', name: "Products" },
-        { path: "/categories", file: 'app/categories/page.tsx', name: "Categories" },
-        { path: "/about", name: "About" },
+        { path: "/", file: 'app/page.tsx', name: "Home", desktopVisibility: true },
+        { path: "/products", file: 'app/products/page.tsx', name: "Products", desktopVisibility: true },
+        { path: "/categories", file: 'app/categories/page.tsx', name: "Categories", desktopVisibility: true },
+        { path: "/orders", file: 'app/orders/page.tsx', name: "Orders", desktopVisibility: false },
+        { path: "/cart", file: 'app/cart/page.tsx', name: "Cart", desktopVisibility: false },
+        { path: "/about", name: "About", desktopVisibility: true },
     ]
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -59,8 +61,8 @@ function HeaderClient({ isLoggedIn, roles, email }: HeaderClientProps) {
                     </div>
 
                     <nav className="hidden md:flex space-x-8">
-                        <ul className="flex gap-7">
-                            {navMenus.map((menu, index) => {
+                        <ul className="flex gap-5">
+                            {navMenus.filter((menu) => menu.desktopVisibility).map((menu, index) => {
                                 const active = pathname === menu.path;
                                 return <li key={index} ><NavMenus href={menu.path} active={active}>{menu.name}</NavMenus></li>
                             })}
@@ -69,7 +71,10 @@ function HeaderClient({ isLoggedIn, roles, email }: HeaderClientProps) {
 
                     <div className="flex items-center space-x-4">
                         {/* Cart icon with live count — sits left of sign in / logout. */}
-                        <CartButton />
+                        <div className="hidden md:block">
+
+                            <CartButton />
+                        </div>
 
                         {isLoggedIn ? (
                             <div className="hidden md:flex items-center gap-3">
@@ -111,10 +116,10 @@ function HeaderClient({ isLoggedIn, roles, email }: HeaderClientProps) {
                     </button>
                 </div>
 
-                <nav className="flex-1 px-6 py-8 space-y-6 overflow-y-auto">
+                <nav className="flex-1 px-6 py-3 space-y-3 overflow-y-auto">
                     {navMenus.map((menu, index) => {
                         const active = pathname === menu.path;
-                        return <NavMenus key={index} href={menu.path} active={active} mobile>{menu.name}</NavMenus>
+                        return <NavMenus key={index} href={menu.path} active={active} onClick={closeMenu} mobile>{menu.name}</NavMenus>
                     })}
                     <div className="pt-6 border-t border-gray-100">
 
@@ -144,6 +149,7 @@ interface HeaderClientProps {
 interface HeaderNavProps {
     href: string,
     children: string,
+    onClick?: () => void,
     active?: boolean,
     mobile?: boolean
 }
@@ -155,9 +161,9 @@ function NavMenus(props: HeaderNavProps) {
     }
     logger.debug("NavMenus active")
     if (!props.active) {
-        return <Link href={props.href} className={base + "text-gray-500  hover:text-indigo-600"}>{props.children}</Link>
+        return <Link href={props.href} onClick={props.onClick} className={base + " bg-gray-0 px-3 py-2 rounded-xl text-gray-500  hover:text-indigo-600"}>{props.children}</Link>
     }
-    return <Link href={props.href} className={base + "text-gray-900"}>{props.children}</Link>
+    return <Link href={props.href} className={base + "bg-gray-200 px-3 py-2 rounded-xl shadow-inner text-gray-700"}>{props.children}</Link>
 }
 
 export default HeaderClient
