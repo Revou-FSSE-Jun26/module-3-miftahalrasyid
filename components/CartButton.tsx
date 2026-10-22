@@ -20,6 +20,7 @@ export function CartButton() {
     <IconButton
       component={Link}
       href="/cart"
+      data-testid="cart-button"
       aria-label={`Cart${productCount ? `, ${productCount} product${productCount > 1 ? "s" : ""}` : ""}`}
       size="large"
       sx={{ color: "rgb(75 85 99)" }} // gray-600

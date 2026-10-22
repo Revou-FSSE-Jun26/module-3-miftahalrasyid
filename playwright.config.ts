@@ -26,28 +26,40 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
+    baseURL: "http://localhost:3000",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+
+    /* Slow actions down a touch so the flow is followable in `playwright --ui`.
+       Set PW_SLOWMO=0 to disable. */
+    launchOptions: {
+      slowMo: process.env.PW_SLOWMO ? Number(process.env.PW_SLOWMO) : 300,
+    },
+
+    /* Generous per-action / per-navigation timeouts for the mocked suite. */
+    actionTimeout: 15_000,
+    navigationTimeout: 15_000,
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects for major browsers.
+     The mocked E2E suite runs on Chromium only for speed; add firefox/webkit
+     back if you want cross-browser coverage. */
   projects: [
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
 
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
+    // {
+    //   name: "firefox",
+    //   use: { ...devices["Desktop Firefox"] },
+    // },
 
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
+    // {
+    //   name: "webkit",
+    //   use: { ...devices["Desktop Safari"] },
+    // },
 
     /* Test against mobile viewports. */
     // {
@@ -70,10 +82,15 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /* Boot the app in TEST MODE before the suite:
+     - plain `next dev`; testmode injects the proxy per-request (no flag needed).
+     - NEXT_PUBLIC_TEST_MODE=1 flips axios to the fetch adapter (see README) and
+       renders the test-only Google button.
+     reuseExistingServer locally so you can keep a server running for `--ui`. */
+  webServer: {
+    command: "NEXT_PUBLIC_TEST_MODE=1 npx next dev --port 3000",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
 });

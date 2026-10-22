@@ -251,3 +251,40 @@ Full interactive Website available online at **[https://module-3-miftahalrasyid-
 
 - Backend API: `module-2-miftahalrasyid` (Flask + PostgreSQL).
 - Full product spec: `task_management_frontend_spec.md`.
+
+## ⚠️ Testing: axios fetch adapter (REVIEW THIS)
+
+To run the Playwright E2E suite with **zero real backend calls**, every HTTP
+request must be interceptable by Next.js testmode (`next.onFetch`), which hooks
+the global `fetch`. Our authed calls use **axios**, and axios on Node defaults
+to the `http` adapter — which testmode canNOT intercept. Server-side `http`
+requests would leak straight to the real Flask/Railway backend.
+
+### What we did
+
+In `app/lib/api/api.ts` the axios instance switches to the **`fetch` adapter
+only when `NEXT_PUBLIC_TEST_MODE === "1"`**:
+
+```ts
+const testFetchAdapter =
+  process.env.NEXT_PUBLIC_TEST_MODE === "1" ? "fetch" : undefined;
+
+export const api = axios.create({ baseURL, adapter: testFetchAdapter, ... });
+```
+
+- **Production / normal dev:** flag is unset → `adapter: undefined` → axios uses
+  its default Node `http` adapter. **Behaviour is unchanged.**
+- **E2E tests:** Playwright starts the app with `NEXT_PUBLIC_TEST_MODE=1` →
+  axios uses `fetch` → testmode intercepts it → mocks fulfil every call.
+
+### Why flag this for review
+
+- The fetch adapter and the `http` adapter are _mostly_ equivalent but not
+  byte-identical (edge cases around proxies, keep-alive, raw cookie handling,
+  streaming). Because we scope it to test mode, prod never exercises the fetch
+  adapter — but if you ever want tests to reflect prod's exact transport, this
+  is the trade-off to revisit.
+- Requires axios ≥ 1.7 (fetch adapter). Node 18+ provides global `fetch`.
+
+**Action:** review whether test-only scoping is acceptable, or whether you want
+the fetch adapter enabled globally (simpler, but prod would then use it too).

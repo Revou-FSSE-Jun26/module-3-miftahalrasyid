@@ -26,7 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
     }
     return (
         <a href={detailUrl} className="block group">
-            <Card as="article" className="relative overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-700 h-full flex flex-col">
+            <Card as="article" datatype={`product-${product.id}`} className="relative overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-700 h-full flex flex-col">
                 {/* Stock indicator - subtle corner */}
                 <div className={`absolute top-3 right-3 z-10 ${inStock ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'} px-2 py-1 rounded-full text-xs font-medium`}>
                     {stockStatus}

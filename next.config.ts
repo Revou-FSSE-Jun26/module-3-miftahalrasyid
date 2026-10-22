@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    testProxy: true, // 🌟 Tells Next.js to expose server fetches to Playwright
+  },
   images: {
     remotePatterns: [
       {
