@@ -159,7 +159,7 @@ function NavMenus(props: HeaderNavProps) {
     if (props.mobile) {
         base = "block text-2xl font-semibold transition "
     }
-    logger.debug("NavMenus active")
+    // logger.debug("NavMenus active")
     if (!props.active) {
         return <Link href={props.href} onClick={props.onClick} className={base + " bg-gray-0 px-3 py-2 rounded-xl text-gray-500  hover:text-indigo-600"}>{props.children}</Link>
     }
