@@ -95,7 +95,7 @@ export async function createOrderFromCart(
   }
   try {
     const response = await api.post("/api/v1/orders/", {
-      name: `cart order ${Date.now()}`,
+      name: `inv-${Date.now()}`,
       items,
     });
 
