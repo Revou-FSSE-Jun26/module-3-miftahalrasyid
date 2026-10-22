@@ -4,6 +4,7 @@ import { CatalogProduct, deleteCatalogProduct } from "@/app/actions/admin.action
 import { formatTitle } from "@/utils/format";
 import { RowActions } from "@/components/dashboard/RowActions";
 import { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 
 interface CatalogTableProps {
   products: CatalogProduct[];
@@ -23,8 +24,9 @@ export function CatalogTable({ products, canHardDelete, basePath }: CatalogTable
       const res = await deleteCatalogProduct(id, action);
       if (res.success) {
         setRows((prev) => prev.filter((p) => p.id !== id));
+        toast.success(res.message || "Catalog product deleted.");
       } else {
-        alert(res.message);
+        toast.error(res.message);
       }
     });
   };

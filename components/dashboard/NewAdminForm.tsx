@@ -3,6 +3,7 @@
 import { createAdmin } from "@/app/actions/admin-users.actions";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 
 /**
  * Create-a-new-admin form (superadmin only — the page guards access). Posts a
@@ -28,9 +29,11 @@ export function NewAdminForm() {
         password,
       });
       if (result.success) {
+        toast.success(result.message || "Admin created.");
         router.push("/admin/users?role=ADMIN");
       } else {
         setError(result.message);
+        toast.error(result.message);
       }
     });
   }

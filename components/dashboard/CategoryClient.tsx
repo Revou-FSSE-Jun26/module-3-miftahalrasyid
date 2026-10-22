@@ -8,6 +8,7 @@ import {
 } from "@/app/actions/admin-categories.actions";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 
 /**
  * Client-side category manager: create, rename (inline), delete (with confirm).
@@ -35,9 +36,11 @@ export function CategoryClient({ categories }: { categories: AdminCategory[] }) 
       const result = await createCategory(name);
       if (result.success) {
         setNewName("");
+        toast.success(result.message || "Category created.");
         router.refresh();
       } else {
         setError(result.message);
+        toast.error(result.message);
       }
     });
   }
@@ -61,9 +64,11 @@ export function CategoryClient({ categories }: { categories: AdminCategory[] }) 
       const result = await updateCategory(id, name);
       if (result.success) {
         cancelEdit();
+        toast.success(result.message || "Category updated.");
         router.refresh();
       } else {
         setError(result.message);
+        toast.error(result.message);
       }
     });
   }
@@ -76,9 +81,11 @@ export function CategoryClient({ categories }: { categories: AdminCategory[] }) 
     startTransition(async () => {
       const result = await deleteCategory(cat.id as number);
       if (result.success) {
+        toast.success(result.message || "Category deleted.");
         router.refresh();
       } else {
         setError(result.message);
+        toast.error(result.message);
       }
     });
   }

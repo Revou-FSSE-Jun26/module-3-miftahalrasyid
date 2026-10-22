@@ -7,6 +7,7 @@ import {
 } from "@/app/actions/admin-users.actions";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 
 /**
  * Client row-actions for a single user: activate/deactivate and promote a buyer
@@ -34,8 +35,13 @@ export function UserClient({ user }: { user: AdminUser }) {
     }
     startTransition(async () => {
       const result = await setUserActive(user.id, !isActive);
-      if (result.success) router.refresh();
-      else setError(result.message);
+      if (result.success) {
+        toast.success(result.message || (isActive ? "User deactivated." : "User activated."));
+        router.refresh();
+      } else {
+        setError(result.message);
+        toast.error(result.message);
+      }
     });
   }
 
@@ -43,8 +49,13 @@ export function UserClient({ user }: { user: AdminUser }) {
     setError(null);
     startTransition(async () => {
       const result = await promoteToSeller(user.id, roles);
-      if (result.success) router.refresh();
-      else setError(result.message);
+      if (result.success) {
+        toast.success(result.message || "User promoted to seller.");
+        router.refresh();
+      } else {
+        setError(result.message);
+        toast.error(result.message);
+      }
     });
   }
 

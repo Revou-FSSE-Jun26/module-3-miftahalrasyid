@@ -4,6 +4,7 @@ import { updateOrderStatus } from "@/app/actions/seller-orders.actions";
 import type { OrderStatus } from "@/app/actions/orders.actions";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 
 /**
  * Seller action controls for a single order.
@@ -36,9 +37,14 @@ export function OrderActions({
     startTransition(async () => {
       const result = await updateOrderStatus(orderId, next);
       if (result.success) {
+        toast.success(
+          result.message ||
+          (next === "COMPLETED" ? "Order completed." : "Order canceled."),
+        );
         router.refresh();
       } else {
         setError(result.message);
+        toast.error(result.message);
       }
     });
   }

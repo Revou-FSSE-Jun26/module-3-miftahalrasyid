@@ -5,6 +5,7 @@ import { softDeleteListing } from "@/app/actions/seller.actions";
 import { formatRupiah, formatTitle } from "@/utils/format";
 import { RowActions } from "@/components/dashboard/RowActions";
 import { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 
 interface ProductsTableProps {
   products: SellerProduct[];
@@ -38,8 +39,9 @@ export function ProductsTable({ products, isAdmin, basePath }: ProductsTableProp
       const res = await softDeleteListing(id);
       if (res.success) {
         setRows((prev) => prev.filter((p) => p.id !== id));
+        toast.success(res.message || "Listing deleted.");
       } else {
-        alert(res.message);
+        toast.error(res.message);
       }
     });
   };

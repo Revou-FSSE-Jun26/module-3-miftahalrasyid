@@ -13,6 +13,7 @@ import { formatTitle } from "@/utils/format";
 import { logger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
 import { SubmitEvent, useState } from "react";
+import toast from "react-hot-toast";
 
 interface FormState {
   title: string;
@@ -52,7 +53,6 @@ export function ListingEditForm({ listing, roles }: { listing: SellerProduct, ro
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
   // Seller may only toggle ACTIVE<->INACTIVE. Other statuses are shown but
@@ -78,7 +78,6 @@ export function ListingEditForm({ listing, roles }: { listing: SellerProduct, ro
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setServerError(null);
-    setNotice(null);
 
     const found = validate(form);
     setErrors(found);
@@ -126,9 +125,10 @@ export function ListingEditForm({ listing, roles }: { listing: SellerProduct, ro
         }
         setErrors((prev) => ({ ...prev, ...mapped }));
       }
+      toast.error(result.message);
       return;
     }
-    setNotice("Saved.");
+    toast.success(result.message || "Listing updated.");
     router.refresh();
   };
 
@@ -160,12 +160,6 @@ export function ListingEditForm({ listing, roles }: { listing: SellerProduct, ro
           {serverError}
         </div>
       )}
-      {notice && (
-        <div className="rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 text-sm">
-          {notice}
-        </div>
-      )}
-
       {/* Read-only catalog context (seller can't edit shared catalog fields) */}
       {(listing.brand || listing.name) && (
         <div className="rounded-md bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 px-4 py-3 text-sm text-gray-600 dark:text-gray-400">

@@ -11,6 +11,7 @@ import { RegionSelect } from "@/components/profile/RegionSelect";
 // import { logger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 
 /**
  * A single saved address with its own actions: set-default, edit (inline form),
@@ -43,8 +44,13 @@ export function AddressCard({ address }: { address: Address }) {
     setError(null);
     startTransition(async () => {
       const r = await setDefaultAddress(address.id);
-      if (r.success) router.refresh();
-      else setError(r.message);
+      if (r.success) {
+        toast.success(r.message || "Default address updated.");
+        router.refresh();
+      } else {
+        setError(r.message);
+        toast.error(r.message);
+      }
     });
   }
 
@@ -53,8 +59,13 @@ export function AddressCard({ address }: { address: Address }) {
     setError(null);
     startTransition(async () => {
       const r = await deleteAddress(address.id);
-      if (r.success) router.refresh();
-      else setError(r.message);
+      if (r.success) {
+        toast.success(r.message || "Address deleted.");
+        router.refresh();
+      } else {
+        setError(r.message);
+        toast.error(r.message);
+      }
     });
   }
 
@@ -66,10 +77,12 @@ export function AddressCard({ address }: { address: Address }) {
       const r = await updateAddress(address.id, form);
       if (r.success) {
         setEditing(false);
+        toast.success(r.message || "Address updated.");
         router.refresh();
       } else {
         setError(r.message);
         setFieldErrors(r.fieldErrors ?? {});
+        toast.error(r.message);
       }
     });
   }

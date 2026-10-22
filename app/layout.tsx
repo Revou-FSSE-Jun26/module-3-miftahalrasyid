@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import GlobalEventProvider from "@/context/GlobalEventProvider"
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <GlobalEventProvider>
           {children}
         </GlobalEventProvider>
+        {/* Global toast host — success messages for CRUD across shop + dashboards. */}
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            // Keep transitions functional and fast.
+            duration: 3000,
+            success: { duration: 2500 },
+          }}
+        />
       </body>
     </html>
   );

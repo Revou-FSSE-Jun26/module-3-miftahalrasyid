@@ -8,6 +8,7 @@ import type { Category } from "@/app/actions/categories.actions";
 import { useRouter } from "next/navigation";
 import { SubmitEvent, useState } from "react";
 import { logger } from "@/utils/logger";
+import toast from "react-hot-toast";
 
 interface FormState {
   brand: string;
@@ -121,9 +122,11 @@ export function AddProductForm({ categories }: { categories: Category[] }) {
         }
         setErrors((prev) => ({ ...prev, ...mapped }));
       }
+      toast.error(result.message);
       return;
     }
 
+    toast.success(result.message || "Listing created.");
     router.push(
       result.id ? `/seller/products/${result.id}/edit?created=1` : "/seller/products",
     );
@@ -141,6 +144,7 @@ export function AddProductForm({ categories }: { categories: Category[] }) {
       </label>
       {opts.textarea ? (
         <textarea
+          data-testid={`listing-field-${key}`}
           value={form[key]}
           onChange={update(key)}
           rows={3}
@@ -148,6 +152,7 @@ export function AddProductForm({ categories }: { categories: Category[] }) {
         />
       ) : (
         <input
+          data-testid={`listing-field-${key}`}
           type={opts.type || "text"}
           value={form[key]}
           onChange={update(key)}

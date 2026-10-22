@@ -11,6 +11,7 @@ import { RegionSelect } from "@/components/profile/RegionSelect";
 import { logger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 
 const EMPTY_FORM: AddressInput = {
   label: "",
@@ -51,10 +52,12 @@ export function AddressManager({ addresses }: { addresses: Address[] }) {
       if (result.success) {
         setForm(EMPTY_FORM);
         setShowForm(false);
+        toast.success(result.message || "Address added.");
         router.refresh();
       } else {
         setError(result.message);
         setFieldErrors(result.fieldErrors ?? {});
+        toast.error(result.message);
       }
     });
   }
