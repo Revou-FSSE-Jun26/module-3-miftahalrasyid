@@ -8,9 +8,16 @@ export const metadata = {
     title: 'Sign Up - Create Account',
 };
 const Heading = (): JSX.Element => (
-    <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900">
-        Create an Account
-    </h2>
+    <>
+        <div className="flex-shrink-0 flex justify-center items-center">
+            <Link href="/" className="text-2xl font-bold text-gray-900 tracking-tight">
+                ⚡Rovo<span className="text-indigo-600">Dev</span>Shop
+            </Link>
+        </div>
+        <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900">
+            Create an Account
+        </h2>
+    </>
 )
 
 const SubHeading = (): JSX.Element => (

@@ -2,9 +2,10 @@
 
 import { login, googleSignupAction } from '@/app/actions/auth.actions'
 import { LoginFormState } from '@/app/schemas/auth.schemas';
-import { Box, TextField, Typography, CircularProgress, Button, Paper } from '@mui/material'
+import { Box, Typography, CircularProgress, Button, Paper, FormControl, FormHelperText, InputLabel, InputAdornment, IconButton, FilledInput } from '@mui/material'
+import { VisibilityOff, Visibility } from '@mui/icons-material'
 import { useRouter } from 'next/navigation';
-import { useActionState, ReactNode, useEffect, useRef } from 'react'
+import { useActionState, ReactNode, useEffect, useRef, useState, useId } from 'react'
 import { FormState } from '@/app/schemas/auth.schemas'
 import { GoogleLogin } from '@react-oauth/google'
 import GoogleLoginSetAgeForm from '@/components/GoogleSetAgeForm'
@@ -23,6 +24,7 @@ export const loginInitialState: LoginFormState = {
 export default function LoginForm({ redirectTo, children }: LoginFormProps) {
     const loginWithRedirect = login.bind(null, redirectTo);
     const [normalState, normalAction, normalPending] = useActionState(loginWithRedirect, loginInitialState)
+    const [isGoogleLoading, setIsGoogleLoading] = useState(true);
     const [googleState, googleAction, googlePending] = useActionState(
         googleSignupAction,
         { success: false, registration_step: 'FORM', message: '', id_token: null }
@@ -30,6 +32,8 @@ export default function LoginForm({ redirectTo, children }: LoginFormProps) {
     const router = useRouter();
     useEffect(() => {
         if (normalState.success) {
+            localStorage.removeItem('email');
+            localStorage.removeItem('password');
             router.push(redirectTo);
             router.refresh();
         }
@@ -58,21 +62,50 @@ export default function LoginForm({ redirectTo, children }: LoginFormProps) {
                 {isFormStep ? (
                     <>
                         {children}
-                        <GoogleLogin
-                            onSuccess={(credentialResponse) => {
-                                // 💡 100% 本物の id_token が手に入ります！
-                                if (credentialResponse.credential) {
-                                    handleGoogleSuccess(credentialResponse.credential);
+                        {isGoogleLoading && <GoogleButtonSkeleton />}
+                        <div
+                            className={`w-full max-w-84 transition-opacity duration-200 ${isGoogleLoading ? "hidden" : "block"
+                                }`}
+                            /* Triggers the state swap as soon as the DOM element registers */
+                            ref={(el) => {
+                                if (el && isGoogleLoading) {
+                                    setTimeout(() => setIsGoogleLoading(false), 250);
                                 }
                             }}
-                            onError={() => console.log('Login Failed')}
-                            width={336}
-                            useOneTap={false}
-                        />
+                        >
+                            <GoogleLogin
+                                onSuccess={(credentialResponse) => {
+                                    // 💡 100% 本物の id_token が手に入ります！
+                                    if (credentialResponse.credential) {
+                                        handleGoogleSuccess(credentialResponse.credential);
+                                    }
+                                }}
+                                onError={() => console.log('Login Failed')}
+                                width={336}
+                                useOneTap={false}
+                            />
+                        </div>
+
                         <form ref={hiddenGoogleFormRef} action={googleAction} style={{ display: 'none' }}>
                             <input type="hidden" name="id_token" />
                             <input type="hidden" name="age" value="" /> {/* 1回目は空で送る */}
                         </form>
+
+                        {/* TEST-ONLY: Playwright drives Google login through this hidden
+                            button instead of Google's iframe/SDK, so tests never contact
+                            Google. It reuses the real handleGoogleSuccess path with a dummy
+                            id_token; the backend /auth/oauth/google call is mocked.
+                            Rendered only when NEXT_PUBLIC_TEST_MODE==="1" (never in prod). */}
+                        {process.env.NEXT_PUBLIC_TEST_MODE === "1" && (
+                            <button
+                                type="button"
+                                data-testid="google-signin-test"
+                                style={{ display: 'none' }}
+                                onClick={() => handleGoogleSuccess("fake.google.id_token.for.tests")}
+                            >
+                                test google login
+                            </button>
+                        )}
                         <div className="relative flex items-center py-5 my-1">
                             <div className="grow border-t border-gray-300"></div>
 
@@ -119,6 +152,9 @@ function NormalSignInForm({ state, action, pending }: NormalSignInFormProps) {
                 WebkitTextFillColor: '#0f172a !important',
             },
         },
+        // '& .MuiOutlinedInput-notchedOutline': {
+        //     borderRadius: '12px',
+        // },
         '& .MuiInputLabel-root': {
             transform: 'translate(14px, 9px) scale(1)',
         },
@@ -137,43 +173,99 @@ function NormalSignInForm({ state, action, pending }: NormalSignInFormProps) {
             transform: 'translate(14px, -9px) scale(0.75) !important',
         },
     };
+    // restore form data from localStorage when page loaded
+    const [emailState, setEmailState] = useState('')
+    const standardStartId = useId();
+    const [passwordState, setPasswordState] = useState('')
+    const outlinedPasswordId = useId();
+    const [showPassword, setShowPassword] = useState(false);
+    const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+    };
+
+    const handleMouseUpPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+    };
+
+    // 2. LOAD the email from localStorage when the component mounts in the browser
+    useEffect(() => {
+        const savedEmail = localStorage.getItem('email');
+        if (savedEmail) {
+            setEmailState(savedEmail);
+        }
+        const savedPassword = localStorage.getItem('password');
+        if (savedPassword) {
+            setPasswordState(savedPassword);
+        }
+    }, []);
+    // console.log("email state", emailState, state.message, emailRef.current?.value)
+    // 3. SAVE the email to localStorage whenever an error appears
+
+    useEffect(() => {
+        // Check if a message exists and your state has text
+        if (state.message && emailState) {
+            // console.log("Saving email to localStorage:", emailState);
+            localStorage.setItem('email', emailState);
+        }
+        if (state.message && passwordState) {
+            // console.log("Saving password to localStorage:", emailState);
+            localStorage.setItem('password', passwordState);
+        }
+    }, [state.message]);
+
     return (
         <form action={action} className="space-y-5">
 
             {/* Email Input Group */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, width: '100%' }}>
-                <TextField
-                    id="email"
+            <FormControl error={Boolean(state?.errors?.email)} variant="filled" sx={{ mb: 2, width: '100%' }}>
+                <InputLabel htmlFor={`${standardStartId}-input`}>Email Address</InputLabel>
+                <FilledInput
+                    id={`${standardStartId}-input`}
                     name="email"
                     type="email"
-                    size='small'
-                    label="Email Address"
+                    value={emailState}
+                    onChange={(e) => setEmailState(e.target.value)}
                     placeholder="you@example.com"
-                    variant="outlined"
-                    fullWidth
-                    error={Boolean(state?.errors?.email)}
-                    helperText={state?.errors?.email}
                     sx={textFieldStyle}
                 />
-            </Box>
+                <FormHelperText id="email-helper-text">
+                    {state?.errors?.email}
+                </FormHelperText>
+            </FormControl>
+
 
             {/* Password Input Group */}
-            <Box sx={{ width: '100%', mb: 2 }}>
-                <TextField
-                    id="password"
+            <FormControl error={Boolean(state?.errors?.password)} sx={{ mb: 2, width: '100%' }} variant="filled">
+                <InputLabel htmlFor={`${outlinedPasswordId}-input`}>Password</InputLabel>
+                <FilledInput
+                    id={`${outlinedPasswordId}-input`}
                     name="password"
-                    type="password"
-                    label="Password"
-                    placeholder="••••••••"
-                    variant="outlined"
-                    fullWidth
-                    required
-                    size="small"
-                    error={Boolean(state?.errors?.password)}
-                    helperText={state?.errors?.password}
+                    type={showPassword ? 'text' : 'password'}
+                    value={passwordState}
+                    onChange={(e) => setPasswordState(e.target.value)}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                aria-label={
+                                    showPassword ? 'hide the password' : 'display the password'
+                                }
+                                onClick={handleClickShowPassword}
+                                onMouseDown={handleMouseDownPassword}
+                                onMouseUp={handleMouseUpPassword}
+                                edge="end"
+                            >
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    }
                     sx={textFieldStyle}
                 />
-            </Box>
+                <FormHelperText id="email-helper-text">
+                    {state?.errors?.password}
+                </FormHelperText>
+            </FormControl>
 
             {/* Global Error/Success Message */}
             {state?.message && (
@@ -219,4 +311,20 @@ function NormalSignInForm({ state, action, pending }: NormalSignInFormProps) {
 
         </form>
     )
+}
+function GoogleButtonSkeleton() {
+    return (
+        <div className="relative top-0 inset-0 flex items-center justify-between w-full max-w-84 mx-auto p-3 border border-gray-200 rounded-xl bg-gray-50 animate-pulse pointer-events-none z-10">
+            <div className="flex items-center gap-3">
+                {/* Fake Avatar Image */}
+                <div className="h-6 w-6 rounded-full bg-gray-200" />
+                {/* Fake Identity Text */}
+                <div className="space-y-1">
+                    <div className="h-3 w-28 bg-gray-200 rounded" />
+                </div>
+            </div>
+            {/* Fake Google Logo Icon */}
+            <div className="h-5 w-5 rounded-full bg-gray-200" />
+        </div>
+    );
 }

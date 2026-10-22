@@ -1,12 +1,14 @@
 'use client'
 
 import { signup, googleSignupAction } from '@/app/actions/auth.actions'
-import { Box, TextField, Typography, CircularProgress, Button, Paper, FormControlLabel, Checkbox, Link, FormHelperText } from '@mui/material'
-import { useActionState, ReactNode, useState, useRef } from 'react'
+import { FormControlLabel, Checkbox, Link, Box, Typography, CircularProgress, Button, Paper, FormControl, FormHelperText, InputLabel, InputAdornment, IconButton, FilledInput } from '@mui/material'
+import { VisibilityOff, Visibility } from '@mui/icons-material'
+import { useActionState, ReactNode, useState, useRef, useId, useEffect } from 'react'
 import SendEmail from '@/components/send-email'
 import { FormState } from '@/app/schemas/auth.schemas'
 import GoogleLoginSetAgeForm from '@/components/GoogleSetAgeForm'
 import { GoogleLogin } from '@react-oauth/google'
+import { logger } from '@/utils/logger'
 
 interface SignupFormProps {
     children?: ReactNode;
@@ -19,6 +21,7 @@ export const initialState: FormState = {
 };
 export default function SignupForm({ children }: SignupFormProps) {
     const [normalState, normalAction, normalPending] = useActionState(signup, initialState)
+    const [isGoogleLoading, setIsGoogleLoading] = useState(true);
     const [googleState, googleAction, googlePending] = useActionState(
         googleSignupAction,
         { success: false, registration_step: 'FORM', message: '', id_token: null }
@@ -71,19 +74,29 @@ export default function SignupForm({ children }: SignupFormProps) {
                 ) : isFormStep ? (
                     <>
                         {children}
-                        {/* <GoogleLoginButton onAuthSuccess={handleGoogleSuccess} isPending={googlePending} /> */}
-
-                        <GoogleLogin
-                            onSuccess={(credentialResponse) => {
-                                // 💡 100% 本物の id_token が手に入ります！
-                                if (credentialResponse.credential) {
-                                    handleGoogleSuccess(credentialResponse.credential);
+                        {isGoogleLoading && <GoogleButtonSkeleton />}
+                        <div
+                            className={`w-full max-w-84 transition-opacity duration-200 ${isGoogleLoading ? "hidden" : "block"
+                                }`}
+                            /* Triggers the state swap as soon as the DOM element registers */
+                            ref={(el) => {
+                                if (el && isGoogleLoading) {
+                                    setTimeout(() => setIsGoogleLoading(false), 250);
                                 }
                             }}
-                            onError={() => console.log('Login Failed')}
-                            width={336}
-                            useOneTap={false}
-                        />
+                        >
+                            <GoogleLogin
+                                onSuccess={(credentialResponse) => {
+                                    // 💡 100% 本物の id_token が手に入ります！
+                                    if (credentialResponse.credential) {
+                                        handleGoogleSuccess(credentialResponse.credential);
+                                    }
+                                }}
+                                onError={() => console.log('Login Failed')}
+                                width={336}
+                                useOneTap={false}
+                            />
+                        </div>
                         <form ref={hiddenGoogleFormRef} action={googleAction} style={{ display: 'none' }}>
                             <input type="hidden" name="id_token" />
                             <input type="hidden" name="age" value="" /> {/* 1回目は空で送る */}
@@ -170,122 +183,230 @@ function NormalSignUpForm({ state, action, pending }: NormalSignUpFormProps) {
             transform: 'translate(14px, -9px) scale(0.75) !important',
         },
     };
-    const errorListBoxStyle = {
-        marginTop: '8px',
-        backgroundColor: '#fff1f2', // rose-50
-        border: '1px solid #ffe4e6', // rose-100
-        borderRadius: '8px',
-        padding: '12px',
+    // const errorListBoxStyle = {
+    //     marginTop: '8px',
+    //     backgroundColor: '#fff1f2', // rose-50
+    //     border: '1px solid #ffe4e6', // rose-100
+    //     borderRadius: '8px',
+    //     padding: '12px',
+    // };
+    const errorListTextStyle = {
+        ml: 1.75,
+        color: '#c10007',
+    }
+    const [formValues, setFormValues] = useState({
+        email: '',
+        age: '',
+        password: '',
+        confirmPassword: ''
+    });
+    // 3. LOAD saved registration data when page loads
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedEmail = localStorage.getItem('register_email') || '';
+            const savedAge = localStorage.getItem('register_age') || '';
+            const savedPassword = localStorage.getItem('register_password') || '';
+            setFormValues(prev => ({
+                ...prev,
+                email: savedEmail,
+                age: savedAge,
+                password: savedPassword
+            }));
+        }
+    }, []);
+
+    // 4. WIPE storage only when server explicitly returns success
+    useEffect(() => {
+        if (state?.success) {
+            localStorage.removeItem('register_email');
+            localStorage.removeItem('register_age');
+            localStorage.removeItem('register_password');
+            setFormValues({ email: '', age: '', password: '', confirmPassword: '' });
+        }
+    }, [state?.success]);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormValues(prev => ({ ...prev, [name]: value }));
+
+        // Instantly cache non-sensitive fields so they survive validation failures & refreshes
+        // if (name === 'email') {
+        //     localStorage.setItem('register_email', value);
+        // } else if (name === 'age') {
+        //     localStorage.setItem('register_age', value);
+        // }
+        // else if (name === 'password') {
+        //     localStorage.setItem('register_password', value);
+        // }
+    };
+    useEffect(() => {
+        logger.info({ errors: state?.errors, values: formValues }, "fetch formValues when fail signup")
+        if (state?.errors && formValues.email) {
+            localStorage.setItem('register_email', formValues.email);
+        }
+        if (state?.errors && formValues.age) {
+            localStorage.setItem('register_age', formValues.age);
+        }
+        if (state?.errors && formValues.password) {
+            localStorage.setItem('register_password', formValues.password);
+        }
+    }, [state?.errors?.email, state?.errors?.password, state?.errors?.confirm_password, state?.errors?.password, state?.errors?.age])
+
+    const standardStartId = useId();
+
+    const outlinedPasswordId = useId();
+    const outlinedConfirmPasswordId = useId();
+    const [showPasswords, setShowPasswords] = useState({
+        password: false,
+        confirmPassword: false,
+    });
+    const togglePasswordVisibility = (field: 'password' | 'confirmPassword') => {
+        setShowPasswords((prev) => ({
+            ...prev,
+            [field]: !prev[field],
+        }));
+    };
+
+
+    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+    };
+
+    const handleMouseUpPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
     };
     // const action = (payload: FormData) => { }
     return (
         <form action={action} className="space-y-5">
 
             {/* Email Input Group */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, width: '100%' }}>
-                <TextField
-                    id="email"
+            <FormControl error={Boolean(state?.errors?.email)} variant="filled" sx={{ mb: 2, width: '100%' }}>
+                <InputLabel htmlFor={`${standardStartId}-input`}>Email Address</InputLabel>
+                <FilledInput
+                    id={`${standardStartId}-input`}
                     name="email"
                     type="email"
-                    size='small'
-                    label="Email Address"
-                    placeholder="you@example.com"
-                    variant="outlined"
-                    fullWidth
-                    error={Boolean(state?.errors?.email)}
-                    helperText={state?.errors?.email}
 
-                    // 🟩 Sekarang cukup panggil objek style yang sudah disatukan di atas
+                    value={formValues.email}
+                    onChange={handleInputChange}
+                    placeholder="you@example.com"
                     sx={textFieldStyle}
                 />
-            </Box>
-
+                {state?.errors?.email && (
+                    <FormHelperText sx={errorListTextStyle}>{state.errors.email[0]}</FormHelperText>
+                )}
+            </FormControl>
             {/* 🆕 Age Input Group */}
-            <Box sx={{ width: '100%' }}>
-                <TextField
+            <FormControl
+                variant="filled"
+                error={Boolean(state?.errors?.age)}
+                size="small"
+                sx={{ mb: 2, width: '100%' }}
+            >
+                {/* 2. Floating Title Label */}
+                <InputLabel htmlFor="age">Age</InputLabel>
+
+                {/* 3. The Structural Filled Text Input Field */}
+                <FilledInput
                     id="age"
                     name="age"
+
                     type="number"
-                    label="Age"
                     placeholder="18"
-                    variant="outlined"
-                    fullWidth
-                    size="small"
+                    value={formValues.age}
+                    onChange={handleInputChange}
+                    // Native HTML Attribute Constraints passed down cleanly
+                    inputProps={{ min: 0 }}
 
-                    // Membatasi nilai minimum angka (min="0")
-                    slotProps={{
-                        htmlInput: { min: 0 }
-                    }}
-
-                    // Integrasi Validasi Error dari Server Action
-                    error={Boolean(state?.errors?.age)}
-                    helperText={state?.errors?.age}
-
-                    // Style ringkas h-10 (40px) agar seragam dengan input email
                     sx={{
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: '8px',
-                            backgroundColor: '#ffffff',
-                            height: '40px',
+                        ...textFieldStyle, // Keeps your core base styles intact
 
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#6366f1',
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#6366f1',
-                                borderWidth: '2px',
-                            },
+                        // Forces custom low-height constraints like your previous size="small"
+                        '& .MuiFilledInput-input': {
+                            paddingTop: '20px',    // Room for the floating label above text
+                            paddingBottom: '6px',   // Snug padding to achieve your ~40px height target
+                            height: 'auto',
                         },
-                        '& .MuiInputLabel-root': {
-                            transform: 'translate(14px, 9px) scale(1)',
-                        },
-                        '& .MuiInputLabel-shrink': {
-                            transform: 'translate(14px, -9px) scale(0.75)',
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': {
-                            color: '#6366f1',
-                        },
-                        '& .MuiFormHelperText-root': {
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            marginLeft: 0,
-                            marginTop: '4px',
-                        }
+
+                        // Optional override for custom corner rounding to match the image layout
+                        borderRadius: '8px 8px 0 0',
                     }}
                 />
-            </Box>
 
+                {/* 4. Validation Response String Element below the baseline */}
+                {state?.errors?.age && (
+                    <FormHelperText id="age-error-text" sx={errorListTextStyle}>
+                        {state.errors.age}
+                    </FormHelperText>
+                )}
+            </FormControl>
             {/* Password Input Group */}
-            <Box sx={{ width: '100%', mb: 2 }}>
-                <TextField
-                    id="password"
+
+            <FormControl error={Boolean(state?.errors?.password)} sx={{ mb: 2, width: '100%' }} variant="filled">
+                <InputLabel htmlFor={`${outlinedPasswordId}-input`}>Password</InputLabel>
+                <FilledInput
+                    id={`${outlinedPasswordId}-input`}
                     name="password"
-                    type="password"
-                    label="Password"
-                    placeholder="••••••••"
-                    variant="outlined"
-                    fullWidth
-                    required
-                    size="small"
-                    error={Boolean(state?.errors?.password)}
+
+                    type={showPasswords.password ? 'text' : 'password'}
+                    value={formValues.password}
+                    onChange={handleInputChange}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                aria-label={
+                                    showPasswords.password ? 'hide the password' : 'display the password'
+                                }
+                                onClick={() => togglePasswordVisibility('password')}
+                                onMouseDown={handleMouseDownPassword}
+                                onMouseUp={handleMouseUpPassword}
+                                edge="end"
+                            >
+                                {showPasswords.password ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    }
                     sx={textFieldStyle}
                 />
                 {state?.errors?.password && (
-                    <Box sx={errorListBoxStyle}>
-                        <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5, color: '#b91c1c' }}>
-                            Password must:
-                        </Typography>
-                        <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '0.75rem', color: '#dc2626' }}>
-                            {state.errors.password.map((error) => (
-                                <li key={error} style={{ marginBottom: '2px' }}>{error}</li>
-                            ))}
-                        </ul>
-                    </Box>
+                    <FormHelperText sx={errorListTextStyle}>{state.errors.password[0]}</FormHelperText>
                 )}
-            </Box>
+            </FormControl>
+
+
 
             {/* Confirm Password Input Group */}
-            <Box sx={{ width: '100%', mb: 2 }}>
+
+            <FormControl error={Boolean(state?.errors?.password)} sx={{ mb: 2, width: '100%' }} variant="filled">
+                <InputLabel htmlFor={`${outlinedConfirmPasswordId}-input`}>Confirm Password</InputLabel>
+                <FilledInput
+                    id={`${outlinedConfirmPasswordId}-input`}
+                    name="confirm_password"
+
+                    type={showPasswords.confirmPassword ? 'text' : 'password'}
+                    value={formValues.confirmPassword}
+                    onChange={handleInputChange}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                aria-label={
+                                    showPasswords.confirmPassword ? 'hide the password' : 'display the password'
+                                }
+                                onClick={() => togglePasswordVisibility('confirmPassword')}
+                                onMouseDown={handleMouseDownPassword}
+                                onMouseUp={handleMouseUpPassword}
+                                edge="end"
+                            >
+                                {showPasswords.confirmPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                    sx={textFieldStyle}
+                />
+                {state?.errors?.confirm_password && (
+                    <FormHelperText sx={errorListTextStyle}>{state.errors.confirm_password[0]}</FormHelperText>
+                )}
+            </FormControl>
+            {/* <Box sx={{ width: '100%', mb: 2 }}>
                 <TextField
                     id="confirm_password"
                     name="confirm_password"
@@ -311,7 +432,7 @@ function NormalSignUpForm({ state, action, pending }: NormalSignUpFormProps) {
                         </ul>
                     </Box>
                 )}
-            </Box>
+            </Box> */}
 
             {/* Global Error/Success Message */}
             {state?.message && (
@@ -357,7 +478,7 @@ function NormalSignUpForm({ state, action, pending }: NormalSignUpFormProps) {
 
                 {/* Menampilkan error jika validasi dikirim dari server action state */}
                 {state?.errors?.terms && (
-                    <FormHelperText error sx={{ fontSize: '0.75rem', fontWeight: 500, mt: 0.5, ml: 1 }}>
+                    <FormHelperText error sx={{ ...errorListTextStyle, fontSize: '0.75rem', fontWeight: 500, mt: 0.5, ml: 1 }}>
                         {state.errors.terms}
                     </FormHelperText>
                 )}
@@ -390,4 +511,21 @@ function NormalSignUpForm({ state, action, pending }: NormalSignUpFormProps) {
 
         </form>
     )
+}
+
+function GoogleButtonSkeleton() {
+    return (
+        <div className="relative top-0 inset-0 flex items-center justify-between w-full max-w-84 mx-auto p-3 border border-gray-200 rounded-xl bg-gray-50 animate-pulse pointer-events-none z-10">
+            <div className="flex items-center gap-3">
+                {/* Fake Avatar Image */}
+                <div className="h-6 w-6 rounded-full bg-gray-200" />
+                {/* Fake Identity Text */}
+                <div className="space-y-1">
+                    <div className="h-3 w-28 bg-gray-200 rounded" />
+                </div>
+            </div>
+            {/* Fake Google Logo Icon */}
+            <div className="h-5 w-5 rounded-full bg-gray-200" />
+        </div>
+    );
 }
