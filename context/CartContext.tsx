@@ -72,7 +72,7 @@ function toItem(line: CartLine): CartItem {
  * here is a cache of the server cart; every mutation re-syncs from the server
  * response so quantities reflect server-side stock caps.
  */
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ children, isAuthenticated }: { children: React.ReactNode, isAuthenticated: boolean }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
@@ -86,6 +86,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refresh = useCallback(async () => {
+    if (!isAuthenticated) {
+      setItems([]);
+      return;
+    }
     const ticket = ++inflight.current;
     const res = await getCartAction();
     if (ticket === inflight.current) applyCart(res.items);

@@ -64,6 +64,7 @@ export function AddToCartButton({
     return (
       <button
         onClick={handleAdd}
+        data-testid={`product-details_add-to-cart_compact-${sellerProductId}`}
         disabled={!inStock || status === "adding"}
         className={`px-6 py-3 rounded-lg font-semibold transition-all ${inStock
           ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-70"
@@ -79,6 +80,7 @@ export function AddToCartButton({
     <div className="w-full">
       <button
         onClick={handleAdd}
+        data-testid={`product-details_add-to-cart_full-${sellerProductId}`}
         disabled={!inStock || status === "adding"}
         className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${inStock
           ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-lg hover:shadow-xl disabled:opacity-70"
