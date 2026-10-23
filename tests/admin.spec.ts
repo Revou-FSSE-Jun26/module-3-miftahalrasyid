@@ -7,7 +7,11 @@ import { loginAs, settle } from "./support/session";
  */
 
 test.describe("admin dashboard", () => {
-  test("category create / edit / delete with toasts", async ({ page, context, next }) => {
+  test("category create / edit / delete with toasts", async ({
+    page,
+    context,
+    next,
+  }) => {
     await loginAs(context, "admin");
     next.onFetch(handlersWithGuard({ role: "admin" }));
 
@@ -21,41 +25,74 @@ test.describe("admin dashboard", () => {
     await expect(page.getByText(/category created/i)).toBeVisible();
 
     // EDIT (first row's Rename)
-    await page.getByRole("button", { name: /^rename$/i }).first().click();
+    await page
+      .getByRole("button", { name: /^rename$/i })
+      .first()
+      .click();
     await settle(page);
     await page.locator('input[value="electronics"]').fill("electronics-x");
-    await page.getByRole("button", { name: /^save$/i }).first().click();
+    await page
+      .getByRole("button", { name: /^save$/i })
+      .first()
+      .click();
     await settle(page);
     await expect(page.getByText(/category updated/i)).toBeVisible();
 
     // DELETE (accept confirm dialog)
     page.on("dialog", (d) => d.accept());
-    await page.getByRole("button", { name: /^delete$/i }).first().click();
+    await page
+      .getByRole("button", { name: /^delete$/i })
+      .first()
+      .click();
     await settle(page);
     await expect(page.getByText(/soft-deleted|deleted/i)).toBeVisible();
   });
 
-  test("activate/deactivate and promote a buyer to seller", async ({ page, context, next }) => {
+  test("activate/deactivate and promote a buyer to seller", async ({
+    page,
+    context,
+    next,
+  }) => {
     await loginAs(context, "admin");
     next.onFetch(handlersWithGuard({ role: "admin" }));
 
     page.on("dialog", (d) => d.accept());
 
     await page.goto("/admin/users");
+    await page.waitForLoadState("networkidle");
     await settle(page);
 
-    // Promote the buyer-only account.
-    await page.getByRole("button", { name: /make seller/i }).first().click();
-    await settle(page);
-    await expect(page.getByText(/promoted to seller|user updated/i)).toBeVisible();
+    // Promote the buyer-only account → success toast.
+    await page
+      .getByRole("button", { name: /make seller/i })
+      .first()
+      .click();
+    await expect(
+      page.getByText(/promoted to seller|user updated/i),
+    ).toBeVisible();
 
-    // Toggle active on a row.
-    await page.getByRole("button", { name: /deactivate|activate/i }).first().click();
-    await settle(page);
-    await expect(page.getByText(/user (updated|activated|deactivated)/i)).toBeVisible();
+    // Wait for the post-refresh list to settle and the first toast to clear so
+    // it can't be mistaken for the next one.
+    await page.waitForLoadState("networkidle");
+    await expect(
+      page.getByText(/promoted to seller|user updated/i),
+    ).toHaveCount(0);
+
+    // Toggle active on a row → success toast.
+    await page
+      .getByRole("button", { name: /deactivate|activate/i })
+      .first()
+      .click();
+    await expect(
+      page.getByText(/user (updated|activated|deactivated)/i),
+    ).toBeVisible();
   });
 
-  test("orders list is read-only with status filter", async ({ page, context, next }) => {
+  test("orders list is read-only with status filter", async ({
+    page,
+    context,
+    next,
+  }) => {
     await loginAs(context, "admin");
     next.onFetch(handlersWithGuard({ role: "admin" }));
 
@@ -97,6 +134,8 @@ test.describe("superadmin", () => {
     await page.getByRole("button", { name: /create admin/i }).click();
     await settle(page);
 
-    await expect(page.getByText(/admin (account )?created|user created/i)).toBeVisible();
+    await expect(
+      page.getByText(/admin (account )?created|user created/i),
+    ).toBeVisible();
   });
 });
