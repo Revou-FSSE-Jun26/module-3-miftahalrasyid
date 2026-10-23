@@ -51,7 +51,8 @@ test.describe("auth", () => {
 
     await page.locator('input[name="email"]').fill(CREDS.buyer.email);
     await page.locator('input[name="password"]').fill(CREDS.buyer.password);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    // await page.getByRole("button", { name: /sign in/i }).click();
+    await page.locator('button[type="submit"]').click();
     await settle(page);
 
     // Logged in → redirected to home; the cart icon button is visible in header.
@@ -74,7 +75,8 @@ test.describe("auth", () => {
     await settle(page);
     await page.locator('input[name="email"]').fill(CREDS.buyer.email);
     await page.locator('input[name="password"]').fill("wrongpass");
-    await page.getByRole("button", { name: /sign in/i }).click();
+    // await page.getByRole("button", { name: /sign in/i }).click();
+    await page.locator('button[type="submit"]').click();
     await settle(page);
 
     await expect(page.getByText(/invalid email or password/i)).toBeVisible();
