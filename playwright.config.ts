@@ -28,13 +28,21 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: "http://localhost:3000",
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    /* Collect trace when retrying the failed test. */
     trace: "on-first-retry",
 
-    /* Slow actions down a touch so the flow is followable in `playwright --ui`.
-       Set PW_SLOWMO=0 to disable. */
     launchOptions: {
-      slowMo: process.env.PW_SLOWMO ? Number(process.env.PW_SLOWMO) : 300,
+      // ✅ FIX GLOBAL: Jika berjalan di GitHub Actions (CI), paksa browser melambat 500ms
+      // di setiap langkah tindakan agar halaman Next.js yang lambat di server CI selesai dirender.
+      slowMo: process.env.CI
+        ? 500
+        : process.env.PW_SLOWMO
+          ? Number(process.env.PW_SLOWMO)
+          : 300,
+
+      // ✅ TAMBAHKAN INI: Memastikan browser di server Linux GitHub Actions
+      // berjalan dalam mode headless yang stabil dengan argumen performa tinggi
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     },
 
     /* Generous per-action / per-navigation timeouts for the mocked suite. */

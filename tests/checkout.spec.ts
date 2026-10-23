@@ -14,7 +14,8 @@ test.describe("checkout", () => {
     next.onFetch(handlersWithGuard({ role: "buyer" }));
 
     await page.goto("/products");
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
+    await page.waitForSelector("h1");
     await settle(page);
 
     await expect(page.getByTestId("product-1")).toBeVisible();

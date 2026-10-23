@@ -98,7 +98,8 @@ test.describe("seller → admin review → catalog", () => {
     );
 
     await page.goto("/products");
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
+    await page.waitForSelector("h1");
     await settle(page);
     await expect(page.getByTestId(`product-${activeListing.id}`)).toBeVisible();
   });

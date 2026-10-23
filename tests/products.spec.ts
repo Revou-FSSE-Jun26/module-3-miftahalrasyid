@@ -105,7 +105,8 @@ import { settle } from "./support/session";
 test("products list shows both mocked products", async ({ page, next }) => {
   next.onFetch(handlersWithGuard({ role: "buyer" }));
   await page.goto("/products");
-  await page.waitForLoadState("networkidle");
+  //   await page.waitForLoadState("networkidle");
+  await page.waitForSelector("h1");
   await settle(page);
   await expect(page.getByTestId("product-1")).toBeVisible();
   await expect(page.getByTestId("product-2")).toBeVisible();
@@ -117,7 +118,8 @@ test("product detail renders the full add-to-cart button", async ({
 }) => {
   next.onFetch(handlersWithGuard({ role: "buyer" }));
   await page.goto("/products/2");
-  await page.waitForLoadState("networkidle");
+  //   await page.waitForLoadState("networkidle");
+  await page.waitForSelector("h1");
   await settle(page);
   await expect(
     page.getByTestId("product-details_add-to-cart_full-2"),
