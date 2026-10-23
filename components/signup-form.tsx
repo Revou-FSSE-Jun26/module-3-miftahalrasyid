@@ -10,6 +10,7 @@ import GoogleLoginSetAgeForm from '@/components/GoogleSetAgeForm'
 import { GoogleLogin } from '@react-oauth/google'
 import { logger } from '@/utils/logger'
 import { redirect } from 'next/navigation';
+import { useRouter } from 'next/router'
 
 interface SignupFormProps {
     children?: ReactNode;
@@ -152,6 +153,7 @@ function NormalSignUpForm({ state, action, pending, isAuthenticated }: NormalSig
     //     message: ""
     // }
     // const pending = false;
+    const router = useRouter();
     const textFieldStyle = {
         '& .MuiOutlinedInput-root': {
             borderRadius: '8px',
@@ -226,14 +228,14 @@ function NormalSignUpForm({ state, action, pending, isAuthenticated }: NormalSig
             localStorage.removeItem('register_age');
             localStorage.removeItem('register_password');
             setFormValues({ email: '', age: '', password: '', confirmPassword: '' });
-            redirect("/")
+            router.push("/");
         }
-    }, [state?.success]);
+    }, [state?.success, router]);
     useEffect(() => {
-        if (isAuthenticated) {
-            redirect("/")
+        if (isAuthenticated && !state?.success) {
+            router.push("/");
         }
-    }, [])
+    }, [isAuthenticated, state?.success, router])
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormValues(prev => ({ ...prev, [name]: value }));

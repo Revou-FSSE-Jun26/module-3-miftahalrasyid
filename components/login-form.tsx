@@ -40,12 +40,16 @@ export default function LoginForm({ redirectTo, children, isAuthenticated }: Log
             router.push(redirectTo);
             router.refresh();
         }
+        // ✅ Keep normalState.message here so the hook catches the completed state change!
     }, [normalState.message, normalState.success, redirectTo, router]);
+
     useEffect(() => {
-        if (isAuthenticated) {
-            redirect("/")
+        // 🛡️ The Guard: Only kick the user out to "/" if they are already logged in 
+        // AND they didn't just successfully hit the login button right now.
+        if (isAuthenticated && !normalState.success) {
+            router.push("/");
         }
-    }, [])
+    }, [isAuthenticated, normalState.success]);
     // Reusable style untuk textfield tinggi 40px (sama dengan signup-form)
     const hiddenGoogleFormRef = useRef<HTMLFormElement>(null);
 

@@ -23,10 +23,10 @@ async function page({ searchParams }: PageProps) {
         category_name: resolvedParams.category,
         category_id: categoryId && !Number.isNaN(categoryId) ? categoryId : undefined,
     });
-    logger.debug(
-        { data: products },
-        "Berhasil mengambil data produk seller",
-    );
+    // logger.debug(
+    //     { data: products },
+    //     "Berhasil mengambil data produk seller",
+    // );
     return (
         <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
             <main className="p-8">

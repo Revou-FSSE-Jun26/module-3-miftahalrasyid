@@ -124,3 +124,29 @@ export async function getCatalogueById(
     return null;
   }
 }
+
+// export async function getCatalogueById(
+//   id: string | number,
+// ): Promise<SellerProductDetail | null> {
+//   const API_BASE =
+//     process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:8000";
+
+//   try {
+//     const res = await fetch(
+//       `${API_BASE.replace(/\/$/, "")}/api/v1/seller-products/${id}`,
+//     );
+
+//     if (!res.ok) {
+//       logger.error(
+//         `Server Flask merespon dengan status: ${res.status} untuk ID #${id}`,
+//       );
+//       return null;
+//     }
+
+//     const body = await res.json();
+//     return body.data ?? null;
+//   } catch (error) {
+//     logger.error(`Gagal mengambil detail produk seller #${id}: ` + error);
+//     return null;
+//   }
+// }
