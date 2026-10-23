@@ -88,7 +88,10 @@ export default defineConfig({
        renders the test-only Google button.
      reuseExistingServer locally so you can keep a server running for `--ui`. */
   webServer: {
-    command: "NEXT_PUBLIC_TEST_MODE=1 npx next dev --port 3000",
+    /* Jika berjalan di GitHub Actions (CI), paksa frontend untuk menembak API Backend Railway Anda yang sedang hidup */
+    command: process.env.CI
+      ? "NEXT_PUBLIC_TEST_MODE=1 NEXT_PUBLIC_API_BASE_URL=https://railway.app npx next dev --port 3000"
+      : "NEXT_PUBLIC_TEST_MODE=1 npx next dev --port 3000",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
