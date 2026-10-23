@@ -9,8 +9,7 @@ import { FormState } from '@/app/schemas/auth.schemas'
 import GoogleLoginSetAgeForm from '@/components/GoogleSetAgeForm'
 import { GoogleLogin } from '@react-oauth/google'
 import { logger } from '@/utils/logger'
-import { redirect } from 'next/navigation';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation';
 
 interface SignupFormProps {
     children?: ReactNode;

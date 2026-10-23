@@ -10,7 +10,6 @@ import { FormState } from '@/app/schemas/auth.schemas'
 import { GoogleLogin } from '@react-oauth/google'
 import GoogleLoginSetAgeForm from '@/components/GoogleSetAgeForm'
 import { logger } from '@/utils/logger';
-import { redirect } from 'next/navigation';
 
 interface LoginFormProps {
     children?: ReactNode;
