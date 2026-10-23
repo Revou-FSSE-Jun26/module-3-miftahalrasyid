@@ -9,10 +9,13 @@ import { useActionState, ReactNode, useEffect, useRef, useState, useId } from 'r
 import { FormState } from '@/app/schemas/auth.schemas'
 import { GoogleLogin } from '@react-oauth/google'
 import GoogleLoginSetAgeForm from '@/components/GoogleSetAgeForm'
+import { logger } from '@/utils/logger';
+import { redirect } from 'next/navigation';
 
 interface LoginFormProps {
     children?: ReactNode;
-    redirectTo: string
+    redirectTo: string;
+    isAuthenticated: true | undefined
 }
 
 export const loginInitialState: LoginFormState = {
@@ -21,7 +24,7 @@ export const loginInitialState: LoginFormState = {
     errors: {},
 };
 
-export default function LoginForm({ redirectTo, children }: LoginFormProps) {
+export default function LoginForm({ redirectTo, children, isAuthenticated }: LoginFormProps) {
     const loginWithRedirect = login.bind(null, redirectTo);
     const [normalState, normalAction, normalPending] = useActionState(loginWithRedirect, loginInitialState)
     const [isGoogleLoading, setIsGoogleLoading] = useState(true);
@@ -37,7 +40,12 @@ export default function LoginForm({ redirectTo, children }: LoginFormProps) {
             router.push(redirectTo);
             router.refresh();
         }
-    }, [normalState.success, redirectTo, router]);
+    }, [normalState.message, normalState.success, redirectTo, router]);
+    useEffect(() => {
+        if (isAuthenticated) {
+            redirect("/")
+        }
+    }, [])
     // Reusable style untuk textfield tinggi 40px (sama dengan signup-form)
     const hiddenGoogleFormRef = useRef<HTMLFormElement>(null);
 

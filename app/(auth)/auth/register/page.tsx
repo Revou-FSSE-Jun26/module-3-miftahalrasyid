@@ -31,15 +31,12 @@ const SubHeading = (): JSX.Element => (
 )
 export default async function RegisterPage() {
     const session = await getSession();
-    if (session) {
-        redirect("/");
-    }
-    const isEmailVerify = true;
+    // const isEmailVerify = true;
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 {/* Calling your Client Component Form here */}
-                < SignupForm >
+                < SignupForm isAuthenticated={session?.isAuthenticated}>
                     <div className='pb-6'>
                         <Heading />
                         <SubHeading />

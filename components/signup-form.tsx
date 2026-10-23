@@ -9,9 +9,11 @@ import { FormState } from '@/app/schemas/auth.schemas'
 import GoogleLoginSetAgeForm from '@/components/GoogleSetAgeForm'
 import { GoogleLogin } from '@react-oauth/google'
 import { logger } from '@/utils/logger'
+import { redirect } from 'next/navigation';
 
 interface SignupFormProps {
     children?: ReactNode;
+    isAuthenticated: true | undefined
 }
 
 export const initialState: FormState = {
@@ -19,7 +21,7 @@ export const initialState: FormState = {
     message: "",
     errors: {},
 };
-export default function SignupForm({ children }: SignupFormProps) {
+export default function SignupForm({ children, isAuthenticated }: SignupFormProps) {
     const [normalState, normalAction, normalPending] = useActionState(signup, initialState)
     const [isGoogleLoading, setIsGoogleLoading] = useState(true);
     const [googleState, googleAction, googlePending] = useActionState(
@@ -113,7 +115,8 @@ export default function SignupForm({ children }: SignupFormProps) {
                         <NormalSignUpForm
                             state={normalState}
                             action={normalAction}
-                            pending={normalPending} />
+                            pending={normalPending}
+                            isAuthenticated={isAuthenticated} />
                     </>
                 ) : <GoogleLoginSetAgeForm
                     state={googleState}
@@ -132,9 +135,10 @@ interface NormalSignUpFormProps {
     state: FormState;
     action: (payload: FormData) => void;
     pending: boolean;
+    isAuthenticated: true | undefined;
 }
 
-function NormalSignUpForm({ state, action, pending }: NormalSignUpFormProps) {
+function NormalSignUpForm({ state, action, pending, isAuthenticated }: NormalSignUpFormProps) {
     // const state = {
     //     errors: {
     //         email: "",
@@ -222,8 +226,14 @@ function NormalSignUpForm({ state, action, pending }: NormalSignUpFormProps) {
             localStorage.removeItem('register_age');
             localStorage.removeItem('register_password');
             setFormValues({ email: '', age: '', password: '', confirmPassword: '' });
+            redirect("/")
         }
     }, [state?.success]);
+    useEffect(() => {
+        if (isAuthenticated) {
+            redirect("/")
+        }
+    }, [])
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormValues(prev => ({ ...prev, [name]: value }));
