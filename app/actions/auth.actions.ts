@@ -76,34 +76,43 @@ export async function login(
     };
   }
 
-  try {
-    const response = await api.post("/api/v1/auth/login", validatedFields.data);
-    // const flaskCookies = response.headers["set-cookie"];
+  // try {
+  const response = await api.post("/api/v1/auth/login", validatedFields.data);
+  // const flaskCookies = response.headers["set-cookie"];
 
-    const { access_token, refresh_token } = response.data;
+  const { access_token, refresh_token } = response.data;
+  console.log("access_token", access_token, "message", response.data.message);
+  await createSession(access_token, refresh_token);
 
-    await createSession(access_token, refresh_token);
+  return {
+    success: true,
+    message: response.data?.message || "Login successful!",
+  };
+  // } catch (error: unknown) {
+  //   if (axios.isAxiosError(error)) {
+  //     const flaskMessage =
+  //       error.response?.data?.message || "Flask server error occurred.";
+  //     return {
+  //       success: false,
+  //       message: flaskMessage,
+  //     };
+  //   }
+  //   const standardMessage =
+  //     error instanceof Error ? error.message : "An unexpected error occurred.";
+  //   return {
+  //     success: false,
+  //     message: standardMessage,
+  //   };
+  // }
+  // return new Promise((resolve => {
 
-    return {
-      success: true,
-      message: response.data?.message || "Login successful!",
-    };
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const flaskMessage =
-        error.response?.data?.message || "Flask server error occurred.";
-      return {
-        success: false,
-        message: flaskMessage,
-      };
-    }
-    const standardMessage =
-      error instanceof Error ? error.message : "An unexpected error occurred.";
-    return {
-      success: false,
-      message: standardMessage,
-    };
-  }
+  //   setTimeout(() => {
+  //     resolve({
+  //       success: false,
+  //       message: "Invalid email or password.",
+  //     });
+  //   }, 3000);
+  // }))
 }
 
 interface GoogleActionState {
