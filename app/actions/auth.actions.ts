@@ -90,6 +90,8 @@ export async function login(
     };
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
+      logger.info("error", error.response as any);
+      logger.info("error", error.response?.data);
       const flaskMessage =
         error.response?.data?.message || "Flask server error occurred.";
       return {
