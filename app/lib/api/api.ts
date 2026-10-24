@@ -21,10 +21,11 @@ const testFetchAdapter =
   process.env.NEXT_PUBLIC_TEST_MODE === "1" ? ("fetch" as const) : undefined;
 
 export const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: `${BASE_URL}api/v1`,
   adapter: testFetchAdapter,
   headers: {
     "Content-Type": "application/json",
+    "Accept-Encoding": "identity",
   },
 });
 
