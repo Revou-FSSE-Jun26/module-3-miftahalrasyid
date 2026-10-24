@@ -36,8 +36,8 @@ export default function LoginForm({ redirectTo, children, isAuthenticated }: Log
         if (normalState.success) {
             localStorage.removeItem('email');
             localStorage.removeItem('password');
-            // router.push(redirectTo);
-            // router.refresh();
+            router.push(redirectTo);
+            router.refresh();
         }
         // ✅ Keep normalState.message here so the hook catches the completed state change!
     }, [normalState.message, normalState.success, redirectTo, router]);
@@ -46,7 +46,7 @@ export default function LoginForm({ redirectTo, children, isAuthenticated }: Log
         // 🛡️ The Guard: Only kick the user out to "/" if they are already logged in 
         // AND they didn't just successfully hit the login button right now.
         if (isAuthenticated && !normalState.success) {
-            // router.push("/");
+            router.push("/");
         }
     }, [isAuthenticated, normalState.success]);
     // Reusable style untuk textfield tinggi 40px (sama dengan signup-form)

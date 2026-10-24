@@ -20,10 +20,6 @@ const nextConfig: NextConfig = {
 
     return [
       {
-        source: "/api/v1/:path*",
-        destination: `${backendUrl}/api/v1/:path*`,
-      },
-      {
         // Menangkap APAPUN setelah /backend-images/ secara mendalam
         source: "/backend-images/:path*",
         // Diteruskan LANGSUNG ke /uploads/ di Flask (KATA "/static/" TELAH DIHAPUS)
