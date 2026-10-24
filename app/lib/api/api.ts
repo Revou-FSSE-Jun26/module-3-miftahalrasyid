@@ -10,19 +10,19 @@ const isServer = typeof window === "undefined";
 // (Browser var is NEXT_PUBLIC_* so it's inlined at build time.)
 const BASE_URL = isServer
   ? process.env.FLASK_API_INTERNAL_URL || "http://127.0.0.1:8000"
-  : "";
+  : process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 
 // TEST-ONLY: under Playwright (NEXT_PUBLIC_TEST_MODE==="1") force axios to use
 // the global `fetch` adapter so Next.js testmode (`next.onFetch`) can intercept
 // these server-side calls and the E2E suite never touches the real backend.
 // In production this is `undefined`, so axios keeps its default Node `http`
 // adapter — behaviour is unchanged. See README "Testing: axios fetch adapter".
-const testFetchAdapter =
-  process.env.NEXT_PUBLIC_TEST_MODE === "1" ? ("fetch" as const) : undefined;
+// const testFetchAdapter =
+//   process.env.NEXT_PUBLIC_TEST_MODE === "1" ? ("fetch" as const) : undefined;
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  adapter: testFetchAdapter,
+  // adapter: testFetchAdapter,
   headers: {
     "Content-Type": "application/json",
   },
