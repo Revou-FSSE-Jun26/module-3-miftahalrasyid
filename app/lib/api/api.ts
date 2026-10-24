@@ -17,12 +17,12 @@ const BASE_URL = isServer
 // these server-side calls and the E2E suite never touches the real backend.
 // In production this is `undefined`, so axios keeps its default Node `http`
 // adapter — behaviour is unchanged. See README "Testing: axios fetch adapter".
-// const testFetchAdapter =
-//   process.env.NEXT_PUBLIC_TEST_MODE === "1" ? ("fetch" as const) : undefined;
+const testFetchAdapter =
+  process.env.NEXT_PUBLIC_TEST_MODE === "1" ? ("fetch" as const) : undefined;
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  // adapter: testFetchAdapter,
+  adapter: testFetchAdapter,
   headers: {
     "Content-Type": "application/json",
   },
