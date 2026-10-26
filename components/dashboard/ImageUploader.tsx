@@ -8,7 +8,7 @@ import { Delete } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 
 
 const ALLOWED = ["image/png", "image/jpeg", "image/webp"];
