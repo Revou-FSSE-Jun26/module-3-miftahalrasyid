@@ -3,7 +3,7 @@ import ProfileItem from "@/components/profile/profileEdit";
 import { AddressManager } from "@/components/profile/AddressManager";
 import { getMyAddresses } from "@/app/actions/address.actions";
 import { getProfile } from "@/app/actions/profile.actions";
-
+import Breadcrumbs from "@/components/Breadcrumbs"
 export default async function myAccount() {
 
     const [profile, addresses] = await Promise.all([
@@ -20,6 +20,7 @@ export default async function myAccount() {
     }
     return (
         <div className="py-8">
+            <Breadcrumbs />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">My Account</h1>
             <p className="text-gray-500 mb-8">Your profile and address detail</p>
             <ProfileContainer heading="Set your profile">

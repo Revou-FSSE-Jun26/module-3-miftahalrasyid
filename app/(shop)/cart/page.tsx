@@ -1,7 +1,7 @@
 import { getSession } from "@/app/lib/sessions";
 import { CartView } from "@/components/CartView";
 import { redirect } from "next/navigation";
-
+import Breadcrumbs from "@/components/Breadcrumbs"
 export const metadata = {
   title: "Cart",
   description: "Review your cart and check out.",
@@ -16,6 +16,7 @@ export default async function CartPage() {
 
   return (
     <div className="py-8 max-w-5xl mx-auto">
+      <Breadcrumbs />
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
         Your Cart
       </h1>

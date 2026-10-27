@@ -2,6 +2,8 @@ import { getMyOrders } from "@/app/actions/orders.actions";
 import { getSession } from "@/app/lib/sessions";
 import { formatRupiah } from "@/utils/format";
 import { redirect } from "next/navigation";
+import Breadcrumbs from "@/components/Breadcrumbs"
+
 
 export const metadata = {
   title: "My Orders",
@@ -34,6 +36,7 @@ export default async function OrdersPage() {
 
   return (
     <div className="py-8">
+      <Breadcrumbs />
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
         My Orders
       </h1>
