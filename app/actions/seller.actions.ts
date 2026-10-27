@@ -99,6 +99,7 @@ export async function getMyListings(
 ): Promise<PagedListings> {
   const page = params.page && params.page > 0 ? params.page : 1;
   const per_page = params.per_page ?? DEFAULT_PER_PAGE;
+
   try {
     // Backend sorts newest-first by default; we pass it explicitly. This works
     // across real pagination (unlike a client-side sort of a single page).
@@ -111,6 +112,10 @@ export async function getMyListings(
       },
     });
     const body = response.data ?? {};
+    logger.info(
+      { page: params.page, products: body.data },
+      "miftah server page products",
+    );
     return {
       items: body.data || [],
       pagination: body.pagination || { page, per_page, total: 0 },

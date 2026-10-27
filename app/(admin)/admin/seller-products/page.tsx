@@ -2,6 +2,7 @@ import { getMyListings } from "@/app/actions/seller.actions";
 import { ProductsTable } from "@/components/dashboard/ProductsTable";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Pagination } from "@/components/dashboard/Pagination";
+import { logger } from "@/utils/logger";
 
 export const metadata = {
   title: "Seller Products",
@@ -18,7 +19,8 @@ export default async function AdminSellerProductsPage({ searchParams }: PageProp
 
   // /seller-products/mine returns ALL listings (all statuses) for admin.
   const { items: products, pagination } = await getMyListings({ search, page });
-
+  logger.info(products, "fetch products");
+  console.log("miftah test", page);
   return (
     <div>
       <PageHeader
@@ -49,7 +51,7 @@ export default async function AdminSellerProductsPage({ searchParams }: PageProp
         </button>
       </form>
 
-      <ProductsTable products={products} isAdmin basePath="/admin/seller-products" />
+      <ProductsTable key={page} products={products} isAdmin basePath="/admin/seller-products" />
 
       <Pagination
         page={pagination.page}

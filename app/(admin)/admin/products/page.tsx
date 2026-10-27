@@ -50,6 +50,7 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
         </button>
       </form>
       <CatalogTable
+        key={page}
         products={products}
         canHardDelete={canHardDelete}
         basePath="/admin/products"
