@@ -14,11 +14,11 @@ function Crumbs() {
     return (
         <Breadcrumbs aria-label="breadcrumb">
             {/* Link default yang selalu ada di awal */}
-            <Link className="relative z-10 pointer-events-auto hover:underline text-gray-600" href="/products">
-                <Typography >
-                    Browse
-                </Typography>
-            </Link>
+            {/* <Link className="relative z-10 pointer-events-auto hover:underline text-gray-600" href="/products"> */}
+            <Typography >
+                Home
+            </Typography>
+            {/* </Link> */}
 
             {/* 2. Looping segmen URL secara otomatis */}
             {pathSegments.map((segment, index) => {
@@ -33,12 +33,12 @@ function Crumbs() {
 
                 return isLast ? (
                     // Halaman aktif saat ini ditampilkan sebagai teks biasa (tidak bisa diklik)
-                    <Typography key={href} sx={{ color: 'text.primary' }}>
-                        {formattedText}
+                    <Typography key={href} className='w-40 whitespace-nowrap text-ellipsis !overflow-hidden' sx={{ color: 'text.primary' }}>
+                        {formattedText.replaceAll("-", " ")}
                     </Typography>
                 ) : (
                     // Halaman sebelumnya ditampilkan sebagai Link yang bisa diklik kembali
-                    <Link key={href} color="inherit" href={href}>
+                    <Link key={href} className='hover:text-blue-700' color="inherit" href={href}>
                         {formattedText}
                     </Link>
                 );
