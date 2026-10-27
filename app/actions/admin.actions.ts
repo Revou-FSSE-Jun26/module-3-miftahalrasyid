@@ -21,23 +21,54 @@ export interface CatalogProduct {
   created_at?: string;
   deleted_at?: string | null;
 }
-
+interface ListEnvelope<T> {
+  success: boolean;
+  message: string;
+  data: T[];
+}
+export interface ListingListParams {
+  search?: string;
+  page?: number;
+  per_page?: number;
+}
+const DEFAULT_PER_PAGE = 10;
+export interface Pagination {
+  page: number;
+  per_page: number;
+  total: number;
+}
+export interface PagedListings {
+  items: CatalogProduct[];
+  pagination: Pagination;
+}
 /**
  * List catalog products via GET /api/v1/admin/products — the admin catalog
  * view, which includes inactive and soft-deleted rows (admin/superadmin only).
  * Authenticated via the axios `api` instance.
  */
 export async function getCatalogProducts(
-  search?: string,
-): Promise<CatalogProduct[]> {
+  params: ListingListParams,
+): Promise<PagedListings> {
+  const page = params.page && params.page > 0 ? params.page : 1;
+  const per_page = params.per_page ?? DEFAULT_PER_PAGE;
   try {
     const response = await api.get("/api/v1/admin/products", {
-      params: search ? { search } : {},
+      params: {
+        sort: "-created_at",
+        page,
+        per_page,
+        ...(params.search ? { search: params.search } : {}),
+      },
     });
-    return response.data?.data || [];
+    const body = response.data ?? {};
+    // logger.info(body, "fetch body");
+    return {
+      items: body.data || [],
+      pagination: body.pagination || { page, per_page, total: 0 },
+    };
   } catch (error) {
     logger.error("Gagal mengambil catalog products: " + error);
-    return [];
+    return { items: [], pagination: { page, per_page, total: 0 } };
   }
 }
 export interface UpdateListingResult {

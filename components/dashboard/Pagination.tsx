@@ -39,7 +39,7 @@ export function Pagination({
     "px-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed";
 
   return (
-    <nav id="miftah-pagination" className="mt-6 flex items-center justify-between gap-4">
+    <nav id="pagination" className="mt-6 flex items-center justify-between gap-4">
       <p className="text-sm text-gray-500">
         Page {page} of {totalPages} · {total} total
       </p>
