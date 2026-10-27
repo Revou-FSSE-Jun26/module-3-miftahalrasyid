@@ -58,7 +58,7 @@ export function FeaturedShowcase({ products }: FeaturedShowcaseProps) {
             const image = p.images?.[0];
             return (
               <SwiperSlide key={p.id}>
-                <a href={`/products/${p.id}`} className="block">
+                <a href={`/products/${p.slug}`} className="block">
                   <article
                     className={`bg-white shadow-lg border border-gray-300 flex flex-col items-center w-full max-w-[280px] md:w-[300px] m-auto rounded-xl overflow-hidden cursor-pointer ${inStock ? "hover:shadow-xl transition" : "opacity-60 grayscale"
                       }`}
