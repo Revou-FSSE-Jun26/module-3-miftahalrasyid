@@ -63,7 +63,9 @@ function HeaderClient({ isLoggedIn, roles, email }: HeaderClientProps) {
                     <nav className="hidden md:flex space-x-8">
                         <ul className="flex gap-5">
                             {navMenus.filter((menu) => menu.desktopVisibility).map((menu, index) => {
-                                const active = pathname === menu.path;
+                                const active = menu.path === '/'
+                                    ? pathname === '/'
+                                    : pathname.startsWith(menu.path);
                                 return <li key={index} ><NavMenus href={menu.path} active={active}>{menu.name}</NavMenus></li>
                             })}
                         </ul>
