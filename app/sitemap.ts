@@ -22,19 +22,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Static, publicly crawlable routes.
   const staticEntries: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
-    { url: `${SITE_URL}/products`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${SITE_URL}/categories`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    {
+      url: `${SITE_URL}/`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 1,
+    },
+    {
+      url: `${SITE_URL}/products`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/categories`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
   ];
 
   // Fetch dynamic data in parallel; tolerate failures so the sitemap still
   // builds (returns at least the static routes) if the API is unreachable.
-  const [products, categories] = await Promise.all([
-    getCatalogues().catch(() => []),
+  const [productsData, categories] = await Promise.all([
+    getCatalogues().catch(() => null),
     getCategories().catch(() => []),
   ]);
+  const productsArray =
+    productsData && "items" in productsData ? productsData.items : [];
 
-  const productEntries: MetadataRoute.Sitemap = products.map((p) => ({
+  const productEntries: MetadataRoute.Sitemap = productsArray.map((p) => ({
     url: `${SITE_URL}/products/${p.id}`,
     lastModified: p.created_at ? new Date(p.created_at) : now,
     changeFrequency: "weekly",

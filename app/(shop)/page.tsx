@@ -18,13 +18,16 @@ const fullBleed =
   "relative left-1/2 right-1/2 -mx-[50vw] w-screen";
 
 export default async function Home() {
-  const [popular, allProducts] = await Promise.all([
+  const [popularData, allProductsData] = await Promise.all([
     getPopularCatalogues(5),
     getCatalogues(),
   ]);
+  const popularItems = (popularData as any)?.items || [];
+  const allProductsItems = (allProductsData as any)?.items || [];
+
   // Swiper holds exactly 5 (3 visible on desktop, swipe for the rest).
   // Fall back to the general catalog if the popular list is empty.
-  const showcase = (popular.length ? popular : allProducts).slice(0, 5);
+  const showcase = (popularItems.length ? popularItems : allProductsItems).slice(0, 5);
 
   return (
     <div className="flex flex-col font-sans text-gray-900">

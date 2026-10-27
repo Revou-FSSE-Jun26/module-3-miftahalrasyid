@@ -19,8 +19,8 @@ export default async function AdminSellerProductsPage({ searchParams }: PageProp
 
   // /seller-products/mine returns ALL listings (all statuses) for admin.
   const { items: products, pagination } = await getMyListings({ search, page });
-  logger.info(products, "fetch products");
-  console.log("miftah test", page);
+  // logger.info(products, "fetch products");
+  // console.log("miftah test", page);
   return (
     <div>
       <PageHeader
