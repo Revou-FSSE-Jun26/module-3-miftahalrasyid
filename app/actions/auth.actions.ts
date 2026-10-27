@@ -106,14 +106,14 @@ export async function login(
       message: standardMessage,
     };
   }
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: false,
-        message: "Invalid email or password.",
-      });
-    }, 3000);
-  });
+  // return new Promise((resolve) => {
+  //   setTimeout(() => {
+  //     resolve({
+  //       success: false,
+  //       message: "Invalid email or password.",
+  //     });
+  //   }, 3000);
+  // });
 }
 
 interface GoogleActionState {
