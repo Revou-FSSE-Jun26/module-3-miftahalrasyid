@@ -6,6 +6,7 @@ interface ListEnvelope<T> {
   success: boolean;
   message: string;
   data: T[];
+  pagination: Pagination;
 }
 
 interface ItemEnvelope<T> {
@@ -75,20 +76,45 @@ export interface CatalogueFilters {
   page?: number;
   per_page?: number;
 }
+export interface Pagination {
+  page: number;
+  per_page: number;
+  total: number;
+}
+export interface PagedListings {
+  items: SellerProduct[];
+  pagination: Pagination;
+}
+const DEFAULT_PER_PAGE = 10;
 
 export async function getCatalogues(
-  filters: CatalogueFilters = {},
-): Promise<SellerProduct[]> {
+  params: CatalogueFilters = {},
+): Promise<PagedListings> {
+  const page = params.page && params.page > 0 ? params.page : 1;
+  const per_page = params.per_page ?? DEFAULT_PER_PAGE;
+
   try {
+    // PERBAIKAN: Kirim flat object langsung sebagai parameter kedua publicGet
     const body = await publicGet<ListEnvelope<SellerProduct>>(
       "/api/v1/seller-products",
-      // publicGet's buildUrl skips undefined/null/"" params automatically.
-      { ...filters },
+      {
+        sort: "-created_at",
+        page: String(page), // Konversi ke String jika QueryValue mewajibkan string
+        per_page: String(per_page), // Konversi ke String jika QueryValue mewajibkan string
+        ...(params.search ? { search: params.search } : {}),
+        ...(params.category_name
+          ? { category_name: params.category_name }
+          : {}),
+      },
     );
-    return body.data || [];
+
+    return {
+      items: body.data || [],
+      pagination: body.pagination || { page, per_page, total: 0 },
+    };
   } catch (error) {
     logger.error("Gagal mengambil data produk seller: " + error);
-    return [];
+    return { items: [], pagination: { page, per_page, total: 0 } };
   }
 }
 
