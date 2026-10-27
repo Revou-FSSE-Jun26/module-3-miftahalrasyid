@@ -1,4 +1,4 @@
-import { getCatalogueById } from "@/app/actions/catalog.actions";
+import { getCatalogueBySlug } from "@/app/actions/catalog.actions";
 // import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatRupiah, formatTitle } from "@/utils/format";
 import { ArrowBack, Inventory, LocalShipping, Shield } from "@mui/icons-material";
@@ -6,12 +6,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import QtyStepper from "@/components/QtyStepper";
 import AddToCartComponent from "@/components/AddToCartComponent";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 interface PageProps {
     params: Promise<{
-        id: string;
+        slug: string;
     }>;
 }
 
@@ -20,8 +20,8 @@ interface PageProps {
  * Falls back to a generic title if the product can't be loaded.
  */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-    const { id } = await params;
-    const product = await getCatalogueById(id);
+    const { slug } = await params;
+    const product = await getCatalogueBySlug(slug);
     if (!product) {
         return {
             title: "Product not found — RovoDevShop",
@@ -70,8 +70,8 @@ function getStockStatus(stock: number) {
     return { text: "Out of stock", color: "text-rose-600 dark:text-rose-400" };
 }
 
-async function ProductDetailContent({ id }: { id: string }) {
-    const product = await getCatalogueById(id);
+async function ProductDetailContent({ slug }: { slug: string }) {
+    const product = await getCatalogueBySlug(slug);
     const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 
     if (!product) {
@@ -90,8 +90,8 @@ async function ProductDetailContent({ id }: { id: string }) {
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
             {/* Sticky minimalist header */}
             <header className="sticky top-0 z-20 bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 py-3">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <Link
+                <div className="max-w-7xl mx-auto flex items-center justify-left gap-2">
+                    {/* <Link
                         href="/products"
                         className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-[#2563eb] dark:hover:text-[#3b82f6] transition-colors"
                     >
@@ -100,7 +100,9 @@ async function ProductDetailContent({ id }: { id: string }) {
                     </Link>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
                         Product #{product.id}
-                    </div>
+                    </div> */}
+                    <ArrowBack className="text-gray-600" fontSize="small" />
+                    <Breadcrumbs />
                 </div>
             </header>
 
@@ -315,11 +317,11 @@ async function ProductDetailContent({ id }: { id: string }) {
 }
 
 async function page({ params }: PageProps) {
-    const { id } = await params;
+    const { slug } = await params;
 
     return (
         <Suspense fallback={<ProductDetailSkeleton />}>
-            <ProductDetailContent id={id} />
+            <ProductDetailContent slug={slug} />
         </Suspense>
     );
 }

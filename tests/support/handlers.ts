@@ -184,12 +184,26 @@ export function makeHandlers(opts: HandlerOptions = {}) {
 
     // ---- Seller products ----
     if (url.includes("/api/v1/seller-products")) {
+      const slugMatch = url.match(
+        /\/api\/v1\/seller-products\/slug\/([^/?#]+)/,
+      );
+      if (slugMatch && method === "GET") {
+        const productSlug = slugMatch[1];
+        // Cari produk berdasarkan properti slug-nya
+        const found = products.find((p) => p.slug === productSlug);
+        return json(itemEnvelope(found ?? null));
+      }
+
+      // 2. Rute DETAIL berbasis ID (Tetap dipertahankan untuk PUT dan DELETE)
       const detail = url.match(/\/api\/v1\/seller-products\/(\d+)(\/|\?|$)/);
+
+      // Method GET berbasis ID (opsional, jika frontend Anda masih membutuhkannya di tempat lain)
       if (detail && method === "GET") {
         const id = Number(detail[1]);
         const found = products.find((p) => p.id === id);
         return json(itemEnvelope(found ?? null));
       }
+
       if (detail && method === "PUT") {
         return json({
           success: true,
@@ -197,9 +211,11 @@ export function makeHandlers(opts: HandlerOptions = {}) {
           data: { id: Number(detail[1]) },
         });
       }
+
       if (detail && method === "DELETE") {
         return json({ success: true, message: "Listing deleted" });
       }
+
       if (method === "POST") {
         // Newly created listing starts PENDING (needs admin approval).
         return json(
@@ -211,6 +227,7 @@ export function makeHandlers(opts: HandlerOptions = {}) {
           201,
         );
       }
+
       if (method === "GET") {
         return json(listEnvelope(products));
       }

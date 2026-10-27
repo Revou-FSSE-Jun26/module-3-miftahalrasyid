@@ -136,6 +136,19 @@ export async function getPopularCatalogues(
     return [];
   }
 }
+export async function getCatalogueBySlug(
+  slug: string,
+): Promise<SellerProductDetail | null> {
+  try {
+    const body = await publicGet<ItemEnvelope<SellerProductDetail>>(
+      `/api/v1/seller-products/slug/${slug}`,
+    );
+    return body.data ?? null;
+  } catch (error) {
+    logger.error(`Gagal mengambil detail produk seller #${slug}: ` + error);
+    return null;
+  }
+}
 
 export async function getCatalogueById(
   id: string | number,

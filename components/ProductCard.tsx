@@ -8,7 +8,7 @@ export function ProductCard({ product }: ProductCardProps) {
     const title = formatTitle(product.title || product.name);
     const brand = product.brand || "";
     const imageUrl = product.images?.[0];
-    const detailUrl = `/products/${product.id}`;
+    const detailUrl = `/products/${product.slug}`;
     const stockStatus = product.stock > 10 ? "In stock" : product.stock > 0 ? "Low stock" : "Sold out";
 
     const getCleanImg = (image: string): string => {

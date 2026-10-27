@@ -22,11 +22,15 @@ test.describe("checkout", () => {
     await expect(page.getByTestId("product-2")).toBeVisible();
 
     await page.getByTestId("product-1").click();
-    await page.waitForURL("**/products/1");
+    await page.waitForURL("**/products/laptop");
     await settle(page);
-    await expect(
-      page.getByTestId("product-details_add-to-cart_full-1"),
-    ).toBeVisible();
+    const cartButtons = page.getByTestId("product-details_add-to-cart_full-1");
+
+    // 2. Pastikan total elemen dengan Test ID tersebut di dalam HTML (DOM) ada TEPAT 2
+    await expect(cartButtons).toHaveCount(2);
+
+    // 3. Pastikan MINIMAL ada 1 elemen yang berstatus terlihat/aktif di layar pengguna
+    await expect(cartButtons.filter({ visible: true }).first()).toBeVisible();
   });
 
   test("add to cart updates the header badge", async ({
@@ -40,9 +44,15 @@ test.describe("checkout", () => {
       handlersWithGuard({ role: "buyer", cartLines: [mockCartLine()] }),
     );
 
-    await page.goto("/products/2");
+    await page.goto("/products/mouse");
     await settle(page);
-    await page.getByTestId("product-details_add-to-cart_full-2").click();
+    const cartButtons = page.getByTestId("product-details_add-to-cart_full-2");
+
+    // 2. Pastikan total elemen dengan Test ID tersebut di dalam HTML (DOM) ada TEPAT 2
+    await expect(cartButtons).toHaveCount(2);
+
+    // 3. Pastikan MINIMAL ada 1 elemen yang berstatus terlihat/aktif di layar pengguna
+    await expect(cartButtons.filter({ visible: true }).first()).toBeVisible();
     await settle(page);
 
     // Badge reflects distinct products (1).

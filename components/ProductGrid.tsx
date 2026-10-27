@@ -69,7 +69,7 @@ export function ProductGrid({ catalogues }: ProductGridProps) {
                                             {formatRupiah(product.price)}
                                         </div>
                                         <a
-                                            href={`/products/${product.id}`}
+                                            href={`/products/${product.slug}`}
                                             className="inline-flex items-center px-6 py-3 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg font-semibold transition-colors"
                                         >
                                             View details

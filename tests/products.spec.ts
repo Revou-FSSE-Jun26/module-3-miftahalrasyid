@@ -34,17 +34,18 @@ test("products page renders the mocked products", async ({ page, next }) => {
   next.onFetch((request) => {
     if (request.url.includes("/api/v1/seller-products")) {
       // 🌟 1. Remove the rigid '$' anchor so it matches even if there are query parameters at the end
-      const detailRouteRegex = /\/api\/v1\/seller-products\/(\d+)(\/|\?|$)/;
-      const match = request.url.match(detailRouteRegex);
+      const match = request.url.match(
+        /\/api\/v1\/seller-products\/slug\/([^/?#]+)/,
+      );
+      // const match = request.url.match(detailRouteRegex);
 
       logger.info(match, "get product id");
 
       if (match && request.method === "GET") {
-        const productId = parseInt(match[1], 10);
-
-        // 🌟 2. Detail endpoints expect a SINGLE object { data: { ... } }, NOT a filtered array [{...}]
+        const productSlug = match[1];
+        // Cari produk berdasarkan properti slug-nya
         const specificProduct = mockProducts.find(
-          (product) => product.id === productId,
+          (p) => p.slug === productSlug,
         );
 
         return new Response(
@@ -78,9 +79,14 @@ test("products page renders the mocked products", async ({ page, next }) => {
   // TODO 1: click add-product-button, fill name-input "Mouse" and
   //         price-input "99000", click save-product
   await card.click();
-  await page.waitForURL("**/products/1");
-  const addtocart = page.getByTestId("product-details_add-to-cart_full-1");
-  await expect(addtocart).toBeVisible();
+  await page.waitForURL("**/products/Laptop");
+  const cartButtons = page.getByTestId("product-details_add-to-cart_full-1");
+
+  // 2. Pastikan total elemen dengan Test ID tersebut di dalam HTML (DOM) ada TEPAT 2
+  await expect(cartButtons).toHaveCount(2);
+
+  // 3. Pastikan MINIMAL ada 1 elemen yang berstatus terlihat/aktif di layar pengguna
+  await expect(cartButtons.filter({ visible: true }).first()).toBeVisible();
 
   // --- add it to the cart ---
   // TODO 2: assert toast-success is visible AND product-row-7 is visible
@@ -117,13 +123,17 @@ test("product detail renders the full add-to-cart button", async ({
   next,
 }) => {
   next.onFetch(handlersWithGuard({ role: "buyer" }));
-  await page.goto("/products/2");
+  await page.goto("/products/mouse");
   //   await page.waitForLoadState("networkidle");
   await page.waitForSelector("h1");
   await settle(page);
-  await expect(
-    page.getByTestId("product-details_add-to-cart_full-2"),
-  ).toBeVisible();
+  const cartButtons = page.getByTestId("product-details_add-to-cart_full-2");
+
+  // 2. Pastikan total elemen dengan Test ID tersebut di dalam HTML (DOM) ada TEPAT 2
+  await expect(cartButtons).toHaveCount(2);
+
+  // 3. Pastikan MINIMAL ada 1 elemen yang berstatus terlihat/aktif di layar pengguna
+  await expect(cartButtons.filter({ visible: true }).first()).toBeVisible();
 });
 
 test("unknown product id renders not-found (no backend leak)", async ({
@@ -150,12 +160,14 @@ test.describe("Add to Cart Button Display UI", () => {
   for (const vp of viewports) {
     test(`should display exactly one Add to Cart button on ${vp.name}`, async ({
       page,
+      next,
     }) => {
+      next.onFetch(handlersWithGuard({ role: "buyer" }));
       // Set the viewport size dynamically
       await page.setViewportSize({ width: vp.width, height: vp.height });
 
       // Navigate to your product page (replace with your route)
-      await page.goto("/products/1");
+      await page.goto("/products/mouse");
 
       // Locate all elements matching your Add to Cart button
       // Tip: Use a robust locator like getByRole or a specific data-testid
@@ -171,11 +183,13 @@ test.describe("Add to Cart Button Display UI", () => {
   // 2. Alternatively, test using Playwright's built-in device emulators
   test("should display exactly one Add to Cart button on simulated iPhone 14", async ({
     page,
+    next,
   }) => {
+    next.onFetch(handlersWithGuard({ role: "buyer" }));
     // Emulate iPhone 14 dimensions and user agent directly in the test if needed
     await page.setViewportSize(devices["iPhone 14"].viewport);
 
-    await page.goto("/products/1");
+    await page.goto("/products/laptop");
 
     const visibleButtons = page
       .getByRole("button", { name: /add to cart/i })
