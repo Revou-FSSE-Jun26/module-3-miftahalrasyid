@@ -1,13 +1,15 @@
 import { getCatalogueBySlug } from "@/app/actions/catalog.actions";
 // import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatRupiah, formatTitle } from "@/utils/format";
-import { ArrowBack, Inventory, LocalShipping, Shield } from "@mui/icons-material";
+import { Inventory, LocalShipping, Shield } from "@mui/icons-material";
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import AddToCartComponent from "@/components/AddToCartComponent";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import BackButton from "@/components/BackButton";
 
 interface PageProps {
     params: Promise<{
@@ -101,7 +103,7 @@ async function ProductDetailContent({ slug }: { slug: string }) {
                     <div className="text-xs text-gray-500 dark:text-gray-400">
                         Product #{product.id}
                     </div> */}
-                    <ArrowBack className="text-gray-600" fontSize="small" />
+                    <BackButton />
                     <Breadcrumbs />
                 </div>
             </header>
