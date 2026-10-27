@@ -1,9 +1,11 @@
 import { getMyOrders } from "@/app/actions/orders.actions";
 import { getSession } from "@/app/lib/sessions";
+import { getMyAddresses } from '@/app/actions/address.actions';
 import { formatRupiah } from "@/utils/format";
-import { redirect } from "next/navigation";
+import { redirect, } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs"
 
+import PaymentButton from "@/components/PaymentButton";
 
 export const metadata = {
   title: "My Orders",
@@ -25,6 +27,7 @@ function statusClasses(status: string) {
 
 export default async function OrdersPage() {
   // Auth-only: guests are redirected to login.
+
   const session = await getSession();
   if (!session) {
     redirect("/auth/login?next=/orders");
@@ -33,6 +36,8 @@ export default async function OrdersPage() {
   // Always the caller's own purchases, regardless of role (via /orders/mine).
   // The all/incoming views live in the seller/admin dashboard, not here.
   const orders = await getMyOrders();
+  const addresses = await getMyAddresses();
+  const defaultAddress = addresses.find((a) => a.is_default);
 
   return (
     <div className="py-8">
@@ -91,6 +96,7 @@ export default async function OrdersPage() {
                     </dd>
                   </div>
                 </dl>
+                <PaymentButton variant="mobile" orderId={order.id} addressId={defaultAddress?.id} />
                 <a
                   href={`/orders/${order.id}`}
                   className="mt-4 w-full inline-flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-md hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150"
@@ -135,7 +141,9 @@ export default async function OrdersPage() {
                         year: "numeric",
                       })}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="flex gap-2 justify-end px-4 py-3 text-right">
+
+                      <PaymentButton orderId={order.id} addressId={defaultAddress?.id} />
                       <a
                         href={`/orders/${order.id}`}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-md hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150"
