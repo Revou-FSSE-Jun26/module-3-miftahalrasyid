@@ -1,4 +1,4 @@
-import { test, expect } from "next/experimental/testmode/playwright";
+import { test, expect, devices } from "next/experimental/testmode/playwright";
 // import { test, expect } from "@playwright/test";
 import { SellerProduct } from "@/app/actions/catalog.actions";
 import { CreateListingInput } from "@/app/actions/seller.actions";
@@ -137,4 +137,49 @@ test("unknown product id renders not-found (no backend leak)", async ({
   await expect(
     page.getByTestId("product-details_add-to-cart_full-123456"),
   ).toHaveCount(0);
+});
+
+const viewports = [
+  { name: "Desktop (1280x800)", width: 1280, height: 800 },
+  { name: "Tablet Portrait (768x1024)", width: 768, height: 1024 },
+  { name: "Mobile Portrait (375x667)", width: 375, height: 667 },
+];
+
+test.describe("Add to Cart Button Display UI", () => {
+  // Test across raw viewport dimensions
+  for (const vp of viewports) {
+    test(`should display exactly one Add to Cart button on ${vp.name}`, async ({
+      page,
+    }) => {
+      // Set the viewport size dynamically
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+
+      // Navigate to your product page (replace with your route)
+      await page.goto("/products/1");
+
+      // Locate all elements matching your Add to Cart button
+      // Tip: Use a robust locator like getByRole or a specific data-testid
+      const addToCartButtons = page.getByRole("button", {
+        name: /add to cart/i,
+      });
+
+      // CRITICAL ASSERTION: Assert that exactly 1 button is physically visible to the user
+      await expect(addToCartButtons.filter({ visible: true })).toHaveCount(1);
+    });
+  }
+
+  // 2. Alternatively, test using Playwright's built-in device emulators
+  test("should display exactly one Add to Cart button on simulated iPhone 14", async ({
+    page,
+  }) => {
+    // Emulate iPhone 14 dimensions and user agent directly in the test if needed
+    await page.setViewportSize(devices["iPhone 14"].viewport);
+
+    await page.goto("/products/1");
+
+    const visibleButtons = page
+      .getByRole("button", { name: /add to cart/i })
+      .filter({ visible: true });
+    await expect(visibleButtons).toHaveCount(1);
+  });
 });

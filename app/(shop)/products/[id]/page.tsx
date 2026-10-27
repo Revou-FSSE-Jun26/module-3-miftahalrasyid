@@ -1,11 +1,13 @@
 import { getCatalogueById } from "@/app/actions/catalog.actions";
-import { AddToCartButton } from "@/components/AddToCartButton";
+// import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatRupiah, formatTitle } from "@/utils/format";
 import { ArrowBack, Inventory, LocalShipping, Shield } from "@mui/icons-material";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
+import QtyStepper from "@/components/QtyStepper";
+import AddToCartComponent from "@/components/AddToCartComponent";
 
 interface PageProps {
     params: Promise<{
@@ -45,11 +47,11 @@ function ProductDetailSkeleton() {
                 <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"></div>
             </header>
             <main className="max-w-7xl mx-auto px-4 py-6">
-                <div className="flex flex-col lg:flex-row gap-8">
+                <div className="flex flex-col md:flex-row gap-8">
                     <div className="lg:w-1/2">
                         <div className="aspect-square bg-gray-300 dark:bg-gray-800 rounded-2xl"></div>
                     </div>
-                    <div className="lg:w-1/2 space-y-6">
+                    <div className="md:w-1/2 space-y-6">
                         <div className="space-y-4">
                             <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
                             <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
@@ -103,7 +105,7 @@ async function ProductDetailContent({ id }: { id: string }) {
             </header>
 
             <main className="max-w-7xl mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                     {/* Left column - Visual & core info */}
                     <div className="space-y-8">
                         {/* Image container */}
@@ -213,10 +215,12 @@ async function ProductDetailContent({ id }: { id: string }) {
 
                         {/* Action buttons (divergent layout) */}
                         <div className="pt-4 space-y-4">
-                            <AddToCartButton
-                                sellerProductId={product.id}
-                                inStock={inStock}
-                            />
+                            <div className="hidden md:block">
+                                <AddToCartComponent
+                                    product={product}
+                                    inStock={inStock}
+                                />
+                            </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <button className="py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                     Save for later
@@ -287,7 +291,7 @@ async function ProductDetailContent({ id }: { id: string }) {
             </main>
 
             {/* Mobile action bar (progressive disclosure - only on mobile) */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 p-4 shadow-2xl">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 p-4 shadow-2xl">
                 <div className="flex items-center justify-between">
                     <div>
                         <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
@@ -295,10 +299,14 @@ async function ProductDetailContent({ id }: { id: string }) {
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">{stockStatus.text}</div>
                     </div>
-                    <AddToCartButton
+                    {/* <AddToCartButton
                         sellerProductId={product.id}
                         inStock={inStock}
                         variant="compact"
+                    /> */}
+                    <AddToCartComponent
+                        product={product}
+                        inStock={inStock}
                     />
                 </div>
             </div>

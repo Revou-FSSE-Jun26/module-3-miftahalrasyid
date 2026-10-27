@@ -1,11 +1,9 @@
-"use client";
-
-import { useCart } from "@/context/CartContext";
-import { useState } from "react";
-
 interface AddToCartButtonProps {
   sellerProductId: number;
   inStock: boolean;
+  status: "idle" | "adding" | "added" | "error";
+  message: string | null;
+  handleAdd: () => void
   /**
    * "full" (default) = large full-width button for the main action area.
    * "compact" = smaller inline button for the sticky mobile bar.
@@ -17,30 +15,15 @@ interface AddToCartButtonProps {
  * Client "Add to cart" button for the product detail page. Adds the listing to
  * the account cart (server-backed via CartContext). Keeps the existing styling.
  */
-export function AddToCartButton({
+export default function AddToCartButton({
   sellerProductId,
   inStock,
+  status,
+  message,
   variant = "full",
+  handleAdd
 }: AddToCartButtonProps) {
-  const { addItem } = useCart();
-  const [status, setStatus] = useState<"idle" | "adding" | "added" | "error">("idle");
-  const [message, setMessage] = useState<string | null>(null);
 
-  const handleAdd = async () => {
-    setStatus("adding");
-    setMessage(null);
-    const res = await addItem(sellerProductId);
-    if (res.success) {
-      setStatus("added");
-      setTimeout(() => setStatus("idle"), 1500);
-    } else {
-      setStatus("error");
-      // Surface the backend's actual reason (e.g. "You cannot add your own
-      // listing to the cart", "Insufficient stock") instead of a generic guess.
-      setMessage(res.message || "Couldn't add to cart.");
-      setTimeout(() => setStatus("idle"), 3500);
-    }
-  };
 
   const compact = variant === "compact";
 
@@ -77,7 +60,7 @@ export function AddToCartButton({
   }
 
   return (
-    <div className="w-full">
+    <div className="flex-1">
       <button
         onClick={handleAdd}
         data-testid={`product-details_add-to-cart_full-${sellerProductId}`}
@@ -94,6 +77,6 @@ export function AddToCartButton({
           {message}
         </p>
       )}
-    </div>
+    </div >
   );
 }
