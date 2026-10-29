@@ -42,6 +42,7 @@ export async function getIncomingOrders(
   per_page = DEFAULT_PER_PAGE,
 ): Promise<PagedOrders> {
   const safePage = page > 0 ? page : 1;
+  const headers = await authHeader();
   try {
     const response = await api.get("/api/v1/orders", {
       params: {
@@ -49,8 +50,9 @@ export async function getIncomingOrders(
         per_page,
         ...(status ? { status } : {}),
       },
-      headers: await authHeader(),
-    });
+      headers: headers,
+      _skipAuthRefresh: true,
+    } as any);
     const body = response.data ?? {};
     return {
       items: body.data || [],
