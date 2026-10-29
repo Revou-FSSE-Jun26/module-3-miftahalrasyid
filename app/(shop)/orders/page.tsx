@@ -96,7 +96,7 @@ export default async function OrdersPage() {
                     </dd>
                   </div>
                 </dl>
-                <PaymentButton variant="mobile" orderId={order.id} addressId={defaultAddress?.id} />
+                {order.status === "PENDING" && <PaymentButton variant="mobile" orderId={order.id} addressId={defaultAddress?.id} />}
                 <a
                   href={`/orders/${order.id}`}
                   className="mt-4 w-full inline-flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-md hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150"
@@ -143,7 +143,7 @@ export default async function OrdersPage() {
                     </td>
                     <td className="flex gap-2 justify-end px-4 py-3 text-right">
 
-                      <PaymentButton orderId={order.id} addressId={defaultAddress?.id} />
+                      {order.status === "PENDING" && <PaymentButton orderId={order.id} addressId={defaultAddress?.id} />}
                       <a
                         href={`/orders/${order.id}`}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-md hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150"
