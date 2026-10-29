@@ -9,9 +9,11 @@ export function DashboardShell({
   navbar,
   sidebar,
   children,
+  footer,
 }: {
   navbar: ReactNode;
   sidebar: ReactNode;
+  footer: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -23,6 +25,7 @@ export function DashboardShell({
         </aside>
         <main className="flex-1 p-6">{children}</main>
       </div>
+      {footer}
     </div>
   );
 }
