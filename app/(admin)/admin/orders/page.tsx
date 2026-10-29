@@ -3,6 +3,7 @@ import type { OrderStatus } from "@/app/actions/orders.actions";
 import { formatRupiah } from "@/utils/format";
 import { Pagination } from "@/components/dashboard/Pagination";
 import Link from "next/link";
+import MoveToInboxRoundedIcon from '@mui/icons-material/MoveToInboxRounded';
 
 export const metadata = {
   title: "Orders",
@@ -48,7 +49,7 @@ function formatDate(value: string) {
 interface PageProps {
   searchParams: Promise<{ status?: string; page?: string }>;
 }
-
+export const dynamic = "force-dynamic";
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const { status: statusParam, page: pageParam } = await searchParams;
   const activeStatus = VALID_STATUSES.includes(statusParam as OrderStatus)
@@ -92,7 +93,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
       {orders.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
-          <div className="text-4xl mb-4">🧾</div>
+          <MoveToInboxRoundedIcon sx={{ fontSize: 36 }} />
           <p className="text-gray-600 dark:text-gray-400">
             No {activeStatus ? activeStatus.toLowerCase() : ""} orders.
           </p>

@@ -31,7 +31,7 @@ export default function UserDropdown({ userEmail = "user@example.com", roles, on
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-
+    const isAdmin = roles.some(role => ["ADMIN", "SUPERADMIN"].includes(role));
     return (
         <div className="relative inline-block text-left" ref={dropdownRef}>
             {/* User Avatar Button */}
@@ -81,7 +81,7 @@ export default function UserDropdown({ userEmail = "user@example.com", roles, on
                             <p className="text-gray-400">Signed in as</p>
                             <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{userEmail}</p>
                         </div>
-                        {roles.length > 1 && <div className="px-3 py-1.5 mb-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                        {(isAdmin || roles.length > 1) && <div className="px-3 py-1.5 mb-2 border-b border-gray-100 dark:border-gray-800 pb-2">
                             <label className="block text-[11px] font-medium text-gray-400 mb-1">
                                 Switch Layout View:
                             </label>

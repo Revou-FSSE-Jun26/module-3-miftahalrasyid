@@ -5,7 +5,7 @@ import type { OrderStatus } from "@/app/actions/orders.actions";
 import { formatRupiah } from "@/utils/format";
 import { Pagination } from "@/components/dashboard/Pagination";
 import Link from "next/link";
-
+import MoveToInboxRoundedIcon from '@mui/icons-material/MoveToInboxRounded';
 export const metadata = {
   title: "Incoming Orders",
   description: "Orders placed against your listings.",
@@ -50,7 +50,7 @@ const VALID_STATUSES: OrderStatus[] = [
   "COMPLETED",
   "CANCELED",
 ];
-
+export const dynamic = "force-dynamic";
 export default async function SellerOrdersPage({ searchParams }: PageProps) {
   // Layout already enforces seller access via requireSeller().
   const { status: statusParam, page: pageParam } = await searchParams;
@@ -100,7 +100,8 @@ export default async function SellerOrdersPage({ searchParams }: PageProps) {
 
       {orders.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
-          <div className="text-4xl mb-4">📥</div>
+          <MoveToInboxRoundedIcon sx={{ fontSize: 36 }} />
+
           <p className="text-gray-600 dark:text-gray-400">
             No {activeStatus ? activeStatus.toLowerCase() : ""} orders yet.
           </p>
