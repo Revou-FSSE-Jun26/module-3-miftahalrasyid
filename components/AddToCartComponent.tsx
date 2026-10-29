@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import QtyStepper from '@/components/QtyStepper';
+import QtyCounter from '@/components/QtyCounter';
 import AddToCartButton from '@/components/AddToCartButton';
 import { SellerProductDetail } from '@/app/actions/catalog.actions';
 import { useCart } from "@/context/CartContext";
@@ -42,7 +42,7 @@ function AddToCartComponent({
     };
     return (
         <div className="flex flex-row sm:flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <QtyStepper useItemsQty={[quantity, setQuantity]} stock={product.stock} />
+            <QtyCounter useItemsQty={[quantity, setQuantity]} stock={product.stock} />
             <AddToCartButton
                 sellerProductId={product.id}
                 inStock={inStock}

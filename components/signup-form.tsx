@@ -203,7 +203,7 @@ function NormalSignUpForm({ state, action, pending, isAuthenticated }: NormalSig
         email: '',
         age: '',
         password: '',
-        confirmPassword: ''
+        confirm_password: ''
     });
     // 3. LOAD saved registration data when page loads
     useEffect(() => {
@@ -215,7 +215,7 @@ function NormalSignUpForm({ state, action, pending, isAuthenticated }: NormalSig
                 ...prev,
                 email: savedEmail,
                 age: savedAge,
-                password: savedPassword
+                password: savedPassword,
             }));
         }
     }, []);
@@ -226,7 +226,7 @@ function NormalSignUpForm({ state, action, pending, isAuthenticated }: NormalSig
             localStorage.removeItem('register_email');
             localStorage.removeItem('register_age');
             localStorage.removeItem('register_password');
-            setFormValues({ email: '', age: '', password: '', confirmPassword: '' });
+            setFormValues({ email: '', age: '', password: '', confirm_password: '' });
             router.push("/");
         }
     }, [state?.success, router]);
@@ -239,15 +239,6 @@ function NormalSignUpForm({ state, action, pending, isAuthenticated }: NormalSig
         const { name, value } = e.target;
         setFormValues(prev => ({ ...prev, [name]: value }));
 
-        // Instantly cache non-sensitive fields so they survive validation failures & refreshes
-        // if (name === 'email') {
-        //     localStorage.setItem('register_email', value);
-        // } else if (name === 'age') {
-        //     localStorage.setItem('register_age', value);
-        // }
-        // else if (name === 'password') {
-        //     localStorage.setItem('register_password', value);
-        // }
     };
     useEffect(() => {
         logger.info({ errors: state?.errors, values: formValues }, "fetch formValues when fail signup")
@@ -394,7 +385,7 @@ function NormalSignUpForm({ state, action, pending, isAuthenticated }: NormalSig
                     name="confirm_password"
 
                     type={showPasswords.confirmPassword ? 'text' : 'password'}
-                    value={formValues.confirmPassword}
+                    value={formValues.confirm_password}
                     onChange={handleInputChange}
                     endAdornment={
                         <InputAdornment position="end">

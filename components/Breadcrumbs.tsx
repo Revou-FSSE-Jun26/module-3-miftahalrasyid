@@ -12,7 +12,7 @@ function Crumbs() {
     const pathSegments = pathname.split('/').filter((segment) => segment !== '');
 
     return (
-        <Breadcrumbs aria-label="breadcrumb">
+        <Breadcrumbs aria-label="breadcrumb" className='!text-sm'>
             {/* Link default yang selalu ada di awal */}
             {/* <Link className="relative z-10 pointer-events-auto hover:underline text-gray-600" href="/products"> */}
             <Typography >

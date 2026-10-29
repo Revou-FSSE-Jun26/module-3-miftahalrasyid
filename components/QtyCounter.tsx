@@ -1,18 +1,15 @@
 "use client"
 import React from 'react'
-import { useCart } from "@/context/CartContext";
-import { OrderItem } from "@/app/actions/orders.actions"
-import { SellerProduct } from '@/app/actions/catalog.actions';
 
 
-interface QtyStepperProps {
+interface QtyCounterProps {
     useItemsQty: [number, React.Dispatch<React.SetStateAction<number>>]
     onQuantityDown?: () => void
     onQuantityUp?: () => void
     stock: number
 }
 
-function QtyStepper({ onQuantityDown, onQuantityUp, stock, useItemsQty }: QtyStepperProps) {
+function QtyCounter({ onQuantityDown, onQuantityUp, stock, useItemsQty }: QtyCounterProps) {
     const [count, setCount] = useItemsQty;
     const clamp = (count: number) => Math.max(1, Math.min(stock, count));
     const handleQuantityDown = () => {
@@ -28,7 +25,7 @@ function QtyStepper({ onQuantityDown, onQuantityUp, stock, useItemsQty }: QtySte
             <button
                 onClick={handleQuantityDown}
                 disabled={count === 0 || count === 1}
-                className="py-3 px-5 rounded-xl font-semibold text-lg  border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:not-disabled:bg-gray-50 dark:hover:not-disabled:bg-gray-800 disabled:opacity-50"
+                className="py-3 px-5 rounded-xl font-semibold text-lg  border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:not-disabled:bg-gray-50 dark:hover:not-disabled:bg-gray-800 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 aria-label="Decrease quantity"
             >
                 −
@@ -38,7 +35,7 @@ function QtyStepper({ onQuantityDown, onQuantityUp, stock, useItemsQty }: QtySte
                 onClick={handleQuantityUp}
                 disabled={count === stock}
                 title={count >= stock ? "Reached available stock" : undefined}
-                className="py-3 px-5 rounded-xl font-semibold text-lg  border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:not-disabled:bg-gray-50 dark:hover:not-disabled:bg-gray-800 disabled:opacity-50"
+                className="py-3 px-5 rounded-xl font-semibold text-lg  border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:not-disabled:bg-gray-50 dark:hover:not-disabled:bg-gray-800 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 aria-label="Increase quantity"
             >
                 +
@@ -47,4 +44,4 @@ function QtyStepper({ onQuantityDown, onQuantityUp, stock, useItemsQty }: QtySte
     )
 }
 
-export default QtyStepper
+export default QtyCounter
