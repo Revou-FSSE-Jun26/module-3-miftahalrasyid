@@ -36,7 +36,7 @@ export async function getAllOrders(
   const safePage = page > 0 ? page : 1;
   const headers = await authHeader();
   try {
-    const response = await api.get("/api/v1/orders", {
+    const response = await api.get("/api/v1/orders/", {
       params: {
         page: safePage,
         per_page,

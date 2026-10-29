@@ -33,7 +33,13 @@ export interface PagedOrders {
 const DEFAULT_PER_PAGE = 10;
 async function authHeader(): Promise<Record<string, string>> {
   const token = await getAccessToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+        // Kirim versi HTTP/2 proxy produksi (huruf kecil semua)
+        authorization: `Bearer ${token}`,
+      }
+    : {};
 }
 /** Incoming orders for the seller, optionally filtered by status, paginated. */
 export async function getIncomingOrders(
@@ -45,7 +51,7 @@ export async function getIncomingOrders(
   const headers = await authHeader();
   logger.info(headers, "fetch access token ");
   try {
-    const response = await api.get("/api/v1/orders", {
+    const response = await api.get("/api/v1/orders/", {
       params: {
         page: safePage,
         per_page,
