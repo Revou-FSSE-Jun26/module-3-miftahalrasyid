@@ -16,7 +16,7 @@ export const metadata = {
 // whole viewport width (matches the checkpoint1 -mx-[50vw] w-screen trick).
 const fullBleed =
   "relative left-1/2 right-1/2 -mx-[50vw] w-screen";
-
+export const dynamic = "force-dynamic";
 export default async function Home() {
   const [popularData, allProductsData] = await Promise.all([
     getPopularCatalogues(5),

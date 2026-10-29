@@ -116,7 +116,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
               </thead>
               <tbody className="text-gray-800 divide-y divide-gray-100">
                 {items.map((item) => (
-                  <tr key={item.id ?? item.seller_product_id} className="text-sm">
+                  <tr key={item.id} className="text-sm">
                     <td className="flex flex-wrap items-center py-5">
                       <a
                         href={`/products/${item.seller_product_id ?? item.product_id}`}
@@ -124,7 +124,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
                       >
                         <p className="mr-3 inline ">{formatTitle(item.product_name)}</p>
                       </a>
-                      <span className="text-xs text-gray-500 whitespace-nowrap pointer-events-none"> {item?.compound_price && item?.quantity && formatRupiah(item.compound_price / item.quantity ?? 0)} x </span>
+                      <span className="text-xs text-gray-500 whitespace-nowrap pointer-events-none"> {item?.compound_price && item?.quantity && item.quantity !== 0 && formatRupiah(item.compound_price / item.quantity)} x </span>
                     </td>
                     <td className="py-5 pr-4 text-center text-gray-600 dark:text-gray-300">
                       {item.quantity ?? 1}

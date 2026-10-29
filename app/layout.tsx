@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     "RovoDevShop — a trusted marketplace where sellers and buyers meet. Browse products, categories, and manage your orders.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"

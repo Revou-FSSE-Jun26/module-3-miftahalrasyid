@@ -4,6 +4,7 @@ import { AddressManager } from "@/components/profile/AddressManager";
 import { getMyAddresses } from "@/app/actions/address.actions";
 import { getProfile } from "@/app/actions/profile.actions";
 import Breadcrumbs from "@/components/Breadcrumbs"
+export const dynamic = "force-dynamic";
 export default async function myAccount() {
 
     const [profile, addresses] = await Promise.all([

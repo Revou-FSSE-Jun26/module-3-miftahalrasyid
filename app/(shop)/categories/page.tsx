@@ -4,7 +4,7 @@ export const metadata = {
   title: "Categories",
   description: "Browse product categories available on RovoDevShop.",
 };
-
+export const dynamic = "force-dynamic";
 export default async function CategoriesPage() {
   const categories = await getCategories();
 
