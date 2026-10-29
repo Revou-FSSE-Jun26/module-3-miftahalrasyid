@@ -4,7 +4,7 @@ import { api } from "@/app/lib/api/api";
 import { logger } from "@/utils/logger";
 import { revalidatePath } from "next/cache";
 import type { Order, OrderStatus } from "@/app/actions/orders.actions";
-
+import { getAccessToken } from "@/app/lib/sessions";
 /**
  * Seller "Incoming Orders" data layer.
  *
@@ -31,7 +31,10 @@ export interface PagedOrders {
 }
 
 const DEFAULT_PER_PAGE = 10;
-
+async function authHeader(): Promise<Record<string, string>> {
+  const token = await getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 /** Incoming orders for the seller, optionally filtered by status, paginated. */
 export async function getIncomingOrders(
   status?: OrderStatus,
@@ -46,6 +49,7 @@ export async function getIncomingOrders(
         per_page,
         ...(status ? { status } : {}),
       },
+      headers: await authHeader(),
     });
     const body = response.data ?? {};
     return {

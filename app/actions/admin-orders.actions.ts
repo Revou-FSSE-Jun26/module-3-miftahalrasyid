@@ -3,7 +3,7 @@
 import { api } from "@/app/lib/api/api";
 import { logger } from "@/utils/logger";
 import type { Order, OrderStatus } from "@/app/actions/orders.actions";
-
+import { getAccessToken } from "@/app/lib/sessions";
 /**
  * Admin order views (read-only). GET /orders/ returns ALL orders for an admin
  * (the backend widens scope by role). No mutations here — admin order status
@@ -16,6 +16,10 @@ export interface Pagination {
   total: number;
 }
 
+async function authHeader(): Promise<Record<string, string>> {
+  const token = await getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 export interface PagedOrders {
   items: Order[];
   pagination: Pagination;
@@ -37,6 +41,7 @@ export async function getAllOrders(
         per_page,
         ...(status ? { status } : {}),
       },
+      headers: await authHeader(),
     });
     const body = response.data ?? {};
     return {
