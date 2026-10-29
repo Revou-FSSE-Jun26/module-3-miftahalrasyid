@@ -193,9 +193,8 @@ export function AddProductForm({ categories }: { categories: Category[] }) {
             </label>
             <div className="flex flex-wrap gap-2">
               {categories
-                .filter((c) => typeof c.id === "number")
                 .map((c) => {
-                  const id = c.id as number;
+                  const id = Number(c.id);
                   const on = selectedCategories.includes(id);
                   return (
                     <button
